@@ -1,0 +1,10 @@
+.gradle
+.idea
+*.iml
+*.jar
+*.war
+target/
+
+/log/
+/tmp/
+/build/classes/

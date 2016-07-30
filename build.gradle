@@ -1,0 +1,41 @@
+apply from: 'version.gradle'
+
+ext {
+	sl4jVersion = '1.7.21'
+}
+
+allprojects {
+
+	apply plugin: 'java'
+	apply plugin: 'maven'
+
+	group = 'ru.antinform.cds'
+	version = cdsVersion
+	buildDir = 'target'
+
+	repositories {
+		mavenLocal()
+		maven {
+			url 'http://192.168.100.181:9999/artifactory/repo'
+		}
+	}
+
+	dependencies {
+		compile 'org.slf4j:slf4j-api:' + sl4jVersion
+		compile 'org.slf4j:log4j-over-slf4j:' + sl4jVersion
+		compile 'ch.qos.logback:logback-classic:1.1.7'
+		compile 'org.apache.commons:commons-lang3:3.4'
+		compile 'com.google.guava:guava:19.0'
+		compile 'com.typesafe:config:1.3.0'
+		testCompile 'junit:junit:4.12'
+		testCompile 'org.mockito:mockito-all:1.10.19'
+	}
+
+	task copyDeps(type: Sync, dependsOn: build) {
+		from(configurations.runtime, jar)
+		into "$buildDir/dependency"
+	}
+
+}
+
+uploadArchives.enabled = false
