@@ -10,7 +10,7 @@ public class CassandraSandbox {
 //		String address = "192.168.100.144";
 		Cluster.Builder clusterBuilder = Cluster.builder().addContactPoint(address);
 		try (Cluster cluster = clusterBuilder.build()) {
-			Session session = cluster.connect("test");
+			Session session = cluster.connect("cds");
 			new CassandraInsertTest(session, 1000, 1000).run();
 		}
 	}

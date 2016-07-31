@@ -31,7 +31,8 @@ import static ru.antinform.cds.utils.ProfileUtils.logVoidCall;
  * - optimal column types: 14.64 s, 14.43 s
  * - async: 9.359 s, 10.16 s
  * - async and parallel (2): 11.50 s, 9.776 s
- * - date int: 7.511 s, 7.554 s
+ * - int date: 7.511 s, 7.554 s
+ * - durable writes: 8.544 s, 8.800 s
  *
  * Results (cassandra-144, tags=1000, values=2000):
  * - async: 10.91 s, 11.41 s
