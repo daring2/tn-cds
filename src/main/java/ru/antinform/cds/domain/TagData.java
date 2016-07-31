@@ -1,17 +1,19 @@
 package ru.antinform.cds.domain;
 
+import java.util.Date;
+
 @SuppressWarnings("WeakerAccess")
 public class TagData {
 
 	public String tag;
-	public long time;
+	public Date time;
 	public double value;
 	public int quality;
 
 	public TagData() {
 	}
 
-	public TagData(String tag, long time, double value, int quality) {
+	public TagData(String tag, Date time, double value, int quality) {
 		this.tag = tag;
 		this.time = time;
 		this.value = value;
@@ -26,11 +28,11 @@ public class TagData {
 		this.tag = tag;
 	}
 
-	public long getTime() {
+	public Date getTime() {
 		return time;
 	}
 
-	public void setTime(long time) {
+	public void setTime(Date time) {
 		this.time = time;
 	}
 
