@@ -6,14 +6,14 @@ import com.datastax.driver.core.ResultSetFuture;
 import com.datastax.driver.core.Session;
 import com.google.common.base.Stopwatch;
 import javax.annotation.concurrent.NotThreadSafe;
-import java.text.SimpleDateFormat;
 import java.util.Date;
 import java.util.concurrent.CountDownLatch;
+import java.util.concurrent.TimeUnit;
 import static com.datastax.driver.core.BatchStatement.Type.LOGGED;
 import static com.google.common.util.concurrent.MoreExecutors.directExecutor;
 import static java.lang.String.format;
 import static java.lang.System.currentTimeMillis;
-import static java.util.concurrent.TimeUnit.SECONDS;
+import static java.util.concurrent.TimeUnit.*;
 import static ru.antinform.cds.utils.ProfileUtils.logVoidCall;
 
 /**
@@ -31,6 +31,7 @@ import static ru.antinform.cds.utils.ProfileUtils.logVoidCall;
  * - optimal column types: 14.64 s, 14.43 s
  * - async: 9.359 s, 10.16 s
  * - async and parallel (2): 11.50 s, 9.776 s
+ * - date int: 7.511 s, 7.554 s
  *
  * Results (cassandra-144, tags=1000, values=2000):
  * - async: 10.91 s, 11.41 s
@@ -40,7 +41,7 @@ import static ru.antinform.cds.utils.ProfileUtils.logVoidCall;
 class CassandraInsertTest {
 
 	static final String CreateTableSql = "create table test_data(" +
-		"tag text, date text, time timestamp, value double, primary key (date, time, tag)" +
+		"tag text, date int, time timestamp, value double, primary key (date, time, tag)" +
 		") with clustering order by (time desc)";
 
 	final Session session;
@@ -51,11 +52,11 @@ class CassandraInsertTest {
 	final Stopwatch runTime = Stopwatch.createUnstarted();
 	final Stopwatch executeTime = Stopwatch.createUnstarted();
 	final CountDownLatch latch = new CountDownLatch(valueCount);
-	final SimpleDateFormat dateFormat = new SimpleDateFormat("yyyy-MM-dd");
+	final TimeUnit datePeriod = DAYS;
 
 	PreparedStatement insertStat;
 	long curTime;
-	String date;
+	int date;
 
 	CassandraInsertTest(Session session, int tagCount, int valueCount) {
 		this.session = session;
@@ -68,7 +69,7 @@ class CassandraInsertTest {
 		session.execute(CreateTableSql);
 		insertStat = session.prepare("insert into test_data (tag, date, time, value) values(?, ?, ?, ?)");
 		curTime =  currentTimeMillis();
-		date = dateFormat.format(curTime);
+		date = (int) datePeriod.convert(curTime, MILLISECONDS);
 		logVoidCall(runTime, () -> {
 			for (int i = 0; i < valueCount; i++) insertValues(i);
 			latch.await();
