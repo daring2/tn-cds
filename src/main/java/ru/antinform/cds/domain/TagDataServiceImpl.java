@@ -48,6 +48,10 @@ public class TagDataServiceImpl implements TagDataService {
 		throw new UnsupportedOperationException();
 	}
 
+	public long selectCountByPeriod(long start, long end) {
+		throw new UnsupportedOperationException();
+	}
+
 	public interface Context {
 		Config mainConfig();
 		Session session();
