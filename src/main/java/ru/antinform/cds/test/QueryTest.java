@@ -40,7 +40,7 @@ public class QueryTest {
 		long time = curTime();
 		for (Long period : periods) {
 			Long result = logCall(queryTime, () ->
-				service.selectCountByPeriod(time - period, time + 1)
+				service.selectCountByPeriod(time - period, time)
 			);
 			log.info("query: period={}, result={}, time={}", period, result, queryTime);
 		}
