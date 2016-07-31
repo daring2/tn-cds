@@ -1,11 +1,20 @@
 package ru.antinform.cds.sandbox;
 
+import com.datastax.driver.core.BatchStatement;
 import com.datastax.driver.core.PreparedStatement;
+import com.datastax.driver.core.ResultSetFuture;
 import com.datastax.driver.core.Session;
 import com.google.common.base.Stopwatch;
 import javax.annotation.concurrent.NotThreadSafe;
 import java.text.SimpleDateFormat;
+import java.util.Date;
 import java.util.concurrent.CountDownLatch;
+import static com.datastax.driver.core.BatchStatement.Type.LOGGED;
+import static com.google.common.util.concurrent.MoreExecutors.directExecutor;
+import static java.lang.String.format;
+import static java.lang.System.currentTimeMillis;
+import static java.util.concurrent.TimeUnit.SECONDS;
+import static ru.antinform.cds.utils.ProfileUtils.logVoidCall;
 
 /**
  * Possible optimizations:
@@ -26,8 +35,9 @@ import java.util.concurrent.CountDownLatch;
  * Results (cassandra-144, tags=1000, values=2000):
  * - async: 10.91 s, 11.41 s
  */
+@SuppressWarnings("WeakerAccess")
 @NotThreadSafe
-class CassandraInsertTest implements Runnable {
+class CassandraInsertTest {
 
 	static final String CreateTableSql = "create table test_data(" +
 		"tag text, date text, time timestamp, value double, primary key (date, time, tag)" +
@@ -44,9 +54,8 @@ class CassandraInsertTest implements Runnable {
 	final SimpleDateFormat dateFormat = new SimpleDateFormat("yyyy-MM-dd");
 
 	PreparedStatement insertStat;
-
-	long curTime = System.currentTimeMillis();
-	String date = dateFormat.format(curTime);
+	long curTime;
+	String date;
 
 	CassandraInsertTest(Session session, int tagCount, int valueCount) {
 		this.session = session;
@@ -54,11 +63,41 @@ class CassandraInsertTest implements Runnable {
 		this.valueCount = valueCount;
 	}
 
-	public void run() {
+	void run() throws Exception {
 		session.execute("drop table if exists test_data");
 		session.execute(CreateTableSql);
-		//TODO implement
+		insertStat = session.prepare("insert into test_data (tag, date, time, value) values(?, ?, ?, ?)");
+		curTime =  currentTimeMillis();
+		date = dateFormat.format(curTime);
+		logVoidCall(runTime, () -> {
+			for (int i = 0; i < valueCount; i++) insertValues(i);
+			latch.await();
+		});
+		long vps = tagCount * valueCount / runTime.elapsed(SECONDS);
+		System.out.println(format("run: tags=%s, values=%s, time=%s, vps=%s",
+			tagCount, valueCount, runTime, vps));
+	}
 
+	private void insertValues(int vi) throws Exception  {
+		BatchStatement batch = new BatchStatement(LOGGED);
+		batch.setIdempotent(true);
+		long time = curTime + vi;
+		for (int i = 0; i < tagCount; i++) {
+			double v = vi + i;
+			batch.add(insertStat.bind("t" + i, date, new Date(time), v));
+		}
+		logVoidCall(executeTime, () -> execute(batch));
+		if (tagCount < 10 ) System.out.println("execute: time=" + executeTime);
+	}
+
+	private void execute(BatchStatement batch) {
+		if (async) {
+			ResultSetFuture rf = session.executeAsync(batch);
+			rf.addListener(latch::countDown, directExecutor());
+		} else {
+			session.execute(batch);
+			latch.countDown();
+		}
 	}
 
 }
