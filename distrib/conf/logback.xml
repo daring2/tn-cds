@@ -39,6 +39,11 @@
 		</filter>
 	</appender>
 
+	<logger name="com.datastax.driver.core.Native" level="WARN"/>
+	<logger name="com.datastax.driver.core.ClockFactory" level="WARN"/>
+	<logger name="com.datastax.driver.core.NettyUtil" level="WARN"/>
+	<logger name="com.datastax.driver.core.policies.DCAwareRoundRobinPolicy" level="WARN"/>
+
 	<root level="INFO">
 		<appender-ref ref="console"/>
 		<appender-ref ref="file.log"/>
