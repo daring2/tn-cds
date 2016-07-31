@@ -30,12 +30,17 @@ public class TagDataServiceImpl implements TagDataService {
 	}
 
 	public ResultSetFuture saveAll(List<TagData> data) {
-		BatchStatement batch = new BatchStatement(LOGGED);
-		batch.setIdempotent(true);
+		BatchStatement batch = newBatchStatement();
 		for (TagData d : data) {
 			batch.add(insertStat.bind(d.tag, calcDate(d.time), d.time, d.value, d.quality));
 		}
 		return session.executeAsync(batch);
+	}
+
+	private BatchStatement newBatchStatement() {
+		BatchStatement batch = new BatchStatement(LOGGED);
+		batch.setIdempotent(true);
+		return batch;
 	}
 
 	private int calcDate(long time) {
