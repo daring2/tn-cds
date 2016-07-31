@@ -10,6 +10,7 @@ public class TestApp {
 	public static void main(String[] args) {
 		try (TestContext ctx = new TestContext()) {
 			new SaveTest(ctx).run();
+			new QueryTest(ctx).run();
 		} catch (Exception e) {
 			log.error("run error", e);
 		}
