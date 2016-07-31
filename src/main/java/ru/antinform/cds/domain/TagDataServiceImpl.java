@@ -1,9 +1,6 @@
 package ru.antinform.cds.domain;
 
-import com.datastax.driver.core.BatchStatement;
-import com.datastax.driver.core.PreparedStatement;
-import com.datastax.driver.core.ResultSetFuture;
-import com.datastax.driver.core.Session;
+import com.datastax.driver.core.*;
 import com.typesafe.config.Config;
 import org.slf4j.Logger;
 import java.util.Date;
@@ -21,6 +18,7 @@ public class TagDataServiceImpl implements TagDataService {
 	final Session session;
 	final long datePeriod;
 	final PreparedStatement insertStat;
+	final PreparedStatement selectCountStat;
 
 	public TagDataServiceImpl(Context ctx) {
 		config = ctx.mainConfig().getConfig("cds.TagDataService");
@@ -29,27 +27,34 @@ public class TagDataServiceImpl implements TagDataService {
 			session.execute(config.getString("createTableSql"));
 		datePeriod = config.getDuration("datePeriod", MILLISECONDS);
 		insertStat = session.prepare(config.getString("insertSql"));
+		selectCountStat = session.prepare(config.getString("selectCountStat"));
 	}
 
 	public ResultSetFuture saveAll(List<TagData> data) {
 		BatchStatement batch = new BatchStatement(LOGGED);
 		batch.setIdempotent(true);
 		for (TagData d : data) {
-			batch.add(insertStat.bind(d.tag, calcDate(d.time), new Date(d.time), d.value, d.quality));
+			batch.add(insertStat.bind(d.tag, calcDate(d.time), d.time, d.value, d.quality));
 		}
 		return session.executeAsync(batch);
 	}
 
-	private int calcDate(long time) {
-		return (int) (time / datePeriod);
+	private int calcDate(Date time) {
+		return (int) (time.getTime() / datePeriod);
 	}
 
-	public List<TagData> findByPeriod(long start, long end) {
+	public List<TagData> findByPeriod(Date start, Date end) {
 		throw new UnsupportedOperationException();
 	}
 
-	public long selectCountByPeriod(long start, long end) {
-		throw new UnsupportedOperationException();
+	public long selectCountByPeriod(Date start, Date end) {
+		int endDate = calcDate(end);
+		long result = 0;
+		for (int d = calcDate(start); d <= endDate; d++) {
+			BoundStatement stat = selectCountStat.bind(d, start, end);
+			result += session.execute(stat).one().getLong(0);
+		}
+		return result;
 	}
 
 	public interface Context {
