@@ -3,6 +3,7 @@ package ru.antinform.cds.utils;
 import com.google.common.base.Stopwatch;
 import java.util.concurrent.Callable;
 
+@SuppressWarnings("WeakerAccess")
 public class ProfileUtils {
 
 	public static <T> T logCall(Stopwatch sw, Callable<T> task) throws Exception {
