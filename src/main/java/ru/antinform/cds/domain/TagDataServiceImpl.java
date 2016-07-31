@@ -22,7 +22,7 @@ public class TagDataServiceImpl implements TagDataService {
 	final long datePeriod;
 	final PreparedStatement insertStat;
 
-	public TagDataServiceImpl(TagDataServiceContext ctx) {
+	public TagDataServiceImpl(Context ctx) {
 		config = ctx.mainConfig().getConfig("cds.TagDataService");
 		session = ctx.session();
 		if (config.getBoolean("createTable"))
@@ -46,6 +46,11 @@ public class TagDataServiceImpl implements TagDataService {
 
 	public List<TagData> findByPeriod(long start, long end) {
 		throw new UnsupportedOperationException();
+	}
+
+	public interface Context {
+		Config mainConfig();
+		Session session();
 	}
 
 }
