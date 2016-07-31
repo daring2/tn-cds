@@ -1,0 +1,48 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+
+<configuration scan="true">
+
+	<property name="msgPattern" value="%date %-5level [%thread] %logger{64} %.-1000msg%n%ex"/>
+	<property name="logFile" value="log/cds-app"/>
+	<property name="maxHistory" value="7"/>
+
+	<appender name="console" class="ch.qos.logback.core.ConsoleAppender">
+		<encoder>
+			<pattern>${msgPattern}</pattern>
+		</encoder>
+	</appender>
+
+	<appender name="file.log" class="ch.qos.logback.core.rolling.RollingFileAppender">
+		<append>true</append>
+		<encoder>
+			<pattern>${msgPattern}</pattern>
+		</encoder>
+		<file>${logFile}.log</file>
+		<rollingPolicy class="ch.qos.logback.core.rolling.TimeBasedRollingPolicy">
+			<fileNamePattern>${logFile}.%d.log</fileNamePattern>
+			<maxHistory>${maxHistory}</maxHistory>
+		</rollingPolicy>
+	</appender>
+
+	<appender name="file.err" class="ch.qos.logback.core.rolling.RollingFileAppender">
+		<append>true</append>
+		<encoder>
+			<pattern>${msgPattern}</pattern>
+		</encoder>
+		<file>${logFile}.err</file>
+		<rollingPolicy class="ch.qos.logback.core.rolling.TimeBasedRollingPolicy">
+			<fileNamePattern>${logFile}.%d.err</fileNamePattern>
+			<maxHistory>${maxHistory}</maxHistory>
+		</rollingPolicy>
+		<filter class="ch.qos.logback.classic.filter.ThresholdFilter">
+			<level>WARN</level>
+		</filter>
+	</appender>
+
+	<root level="INFO">
+		<appender-ref ref="console"/>
+		<appender-ref ref="file.log"/>
+		<appender-ref ref="file.err"/>
+	</root>
+
+</configuration>
