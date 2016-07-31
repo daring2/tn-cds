@@ -10,6 +10,7 @@ import static java.util.concurrent.TimeUnit.MILLISECONDS;
 import static org.slf4j.LoggerFactory.getLogger;
 import static ru.antinform.cds.utils.ProfileUtils.logCall;
 
+@SuppressWarnings("WeakerAccess")
 public class QueryTest {
 
 	final Logger log = getLogger(getClass());
@@ -41,7 +42,7 @@ public class QueryTest {
 			Long result = logCall(queryTime, () ->
 				service.selectCountByPeriod(time - period, time + 1)
 			);
-//			log.info("query: period={}, result={}, time={}", period, result, queryTime);
+			log.info("query: period={}, result={}, time={}", period, result, queryTime);
 		}
 	}
 
