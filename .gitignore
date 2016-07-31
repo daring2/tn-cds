@@ -3,6 +3,7 @@
 *.iml
 *.jar
 *.war
+classes/
 target/
 
 /log/
