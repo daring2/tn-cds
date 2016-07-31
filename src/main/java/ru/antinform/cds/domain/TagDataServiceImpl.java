@@ -4,8 +4,10 @@ import com.datastax.driver.core.*;
 import com.typesafe.config.Config;
 import org.slf4j.Logger;
 import java.util.List;
+import java.util.stream.Stream;
 import static com.datastax.driver.core.BatchStatement.Type.LOGGED;
 import static java.util.concurrent.TimeUnit.MILLISECONDS;
+import static java.util.stream.IntStream.range;
 import static org.slf4j.LoggerFactory.getLogger;
 
 @SuppressWarnings("WeakerAccess")
@@ -52,13 +54,14 @@ public class TagDataServiceImpl implements TagDataService {
 	}
 
 	public long selectCountByPeriod(long start, long end) {
-		int endDate = calcDate(end);
-		long result = 0;
-		for (int d = calcDate(start); d <= endDate; d++) {
-			BoundStatement stat = selectCountStat.bind(d, start, end);
-			result += session.execute(stat).one().getLong(0);
-		}
-		return result;
+		Stream<ResultSet> rs = selectByPeriod(selectCountStat, start, end);
+		return rs.mapToLong(r -> r.one().getLong(0)).sum();
+	}
+
+	private Stream<ResultSet> selectByPeriod(PreparedStatement stat, long start, long end) {
+		return range(calcDate(start), calcDate(end) + 1).mapToObj(d ->
+			session.execute(stat.bind(d, start, end))
+		);
 	}
 
 	public interface Context {
