@@ -3,7 +3,6 @@ package ru.antinform.cds.domain;
 import com.datastax.driver.core.*;
 import com.typesafe.config.Config;
 import org.slf4j.Logger;
-import java.util.Date;
 import java.util.List;
 import static com.datastax.driver.core.BatchStatement.Type.LOGGED;
 import static java.util.concurrent.TimeUnit.MILLISECONDS;
@@ -39,15 +38,15 @@ public class TagDataServiceImpl implements TagDataService {
 		return session.executeAsync(batch);
 	}
 
-	private int calcDate(Date time) {
-		return (int) (time.getTime() / datePeriod);
+	private int calcDate(long time) {
+		return (int) (time / datePeriod);
 	}
 
-	public List<TagData> findByPeriod(Date start, Date end) {
+	public List<TagData> findByPeriod(long start, long end) {
 		throw new UnsupportedOperationException();
 	}
 
-	public long selectCountByPeriod(Date start, Date end) {
+	public long selectCountByPeriod(long start, long end) {
 		int endDate = calcDate(end);
 		long result = 0;
 		for (int d = calcDate(start); d <= endDate; d++) {

@@ -8,7 +8,6 @@ import ru.antinform.cds.domain.TagData;
 import ru.antinform.cds.domain.TagDataService;
 import javax.annotation.concurrent.NotThreadSafe;
 import java.util.ArrayList;
-import java.util.Date;
 import java.util.List;
 import java.util.concurrent.Semaphore;
 import static com.google.common.util.concurrent.MoreExecutors.directExecutor;
@@ -61,7 +60,7 @@ class SaveTest {
 	private void saveValues(long time) throws Exception {
 		List<TagData> data = new ArrayList<>(tagCount);
 		for (int i = 0; i < tagCount; i++)
-			data.add(new TagData("t" + i, new Date(time), time + i, 0));
+			data.add(new TagData("t" + i, time, time + i, 0));
 		ListenableFuture<?> rf = ctx.tagDataService().saveAll(data);
 		rf.addListener(asyncLock::release, directExecutor());
 		asyncLock.acquire();

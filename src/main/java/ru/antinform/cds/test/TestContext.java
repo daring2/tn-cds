@@ -1,14 +1,16 @@
 package ru.antinform.cds.test;
 
 import com.datastax.driver.core.Cluster;
+import com.datastax.driver.core.CodecRegistry;
 import com.datastax.driver.core.Session;
+import com.datastax.driver.extras.codecs.date.SimpleTimestampCodec;
 import com.typesafe.config.Config;
 import com.typesafe.config.ConfigFactory;
 import ru.antinform.cds.domain.TagDataService;
 import ru.antinform.cds.domain.TagDataServiceImpl;
 
 @SuppressWarnings("WeakerAccess")
-class TestContext implements AutoCloseable, TagDataServiceImpl.Context, SaveTest.Context {
+class TestContext implements AutoCloseable, TagDataServiceImpl.Context, SaveTest.Context, QueryTest.Context {
 
 	//TODO consider to use DI container
 
@@ -21,6 +23,8 @@ class TestContext implements AutoCloseable, TagDataServiceImpl.Context, SaveTest
 		Cluster.Builder b = Cluster.builder();
 		c.getStringList("contactPoints").forEach(b::addContactPoint);
 		Cluster cluster = b.build();
+		CodecRegistry codecs = cluster.getConfiguration().getCodecRegistry();
+		codecs.register(new SimpleTimestampCodec());
 		return cluster.connect(c.getString("keyspace"));
 	}
 
