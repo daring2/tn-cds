@@ -6,6 +6,7 @@ import com.codahale.metrics.Slf4jReporter;
 import com.typesafe.config.Config;
 import java.io.File;
 import java.time.Duration;
+import java.util.Locale;
 import static java.util.concurrent.TimeUnit.MILLISECONDS;
 import static ru.antinform.cds.metrics.MetricUtils.metricRegistry;
 
@@ -39,7 +40,7 @@ public class MetricReporter {
 
 	private void createCsvReporter() {
 		File dir = new File(config.getString("csv.dir"));
-		CsvReporter r = CsvReporter.forRegistry(metricRegistry()).build(dir);
+		CsvReporter r = CsvReporter.forRegistry(metricRegistry()).formatFor(Locale.ROOT).build(dir);
 		Duration period = config.getDuration("csv.period");
 		r.start(period.toMillis(), MILLISECONDS);
 	}
