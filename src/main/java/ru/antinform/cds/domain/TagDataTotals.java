@@ -1,5 +1,7 @@
 package ru.antinform.cds.domain;
 
+import com.datastax.driver.core.Row;
+
 @SuppressWarnings("WeakerAccess")
 public class TagDataTotals {
 
@@ -34,4 +36,9 @@ public class TagDataTotals {
 			", valueSum=" + valueSum +
 			'}';
 	}
+
+	void add(Row r) {
+		add(r.getLong(0), r.getDouble(1));
+	}
+
 }

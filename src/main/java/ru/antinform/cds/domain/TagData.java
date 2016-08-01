@@ -1,5 +1,7 @@
 package ru.antinform.cds.domain;
 
+import com.datastax.driver.core.Row;
+
 @SuppressWarnings("WeakerAccess")
 public class TagData {
 
@@ -59,4 +61,9 @@ public class TagData {
 			", quality=" + quality +
 			'}';
 	}
+
+	static TagData read(Row r) {
+		return new TagData(r.getString(0), r.getLong(1), r.getDouble(2), r.getInt(3));
+	}
+
 }

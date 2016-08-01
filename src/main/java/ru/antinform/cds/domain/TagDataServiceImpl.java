@@ -58,17 +58,13 @@ public class TagDataServiceImpl implements TagDataService {
 
 	public Stream<TagData> findByPeriod(long start, long end) {
 		Stream<ResultSet> rs = selectByPeriod(findByPeriodStat, start, end);
-		return rs.flatMap(StreamUtils::stream).map(this::readTagData);
-	}
-
-	private TagData readTagData(Row r) {
-		return new TagData(r.getString(0), r.getLong(1), r.getDouble(2), r.getInt(3));
+		return rs.flatMap(StreamUtils::stream).map(TagData::read);
 	}
 
 	public TagDataTotals selectTotalsByPeriod(long start, long end) {
 		TagDataTotals result = new TagDataTotals();
 		Stream<ResultSet> rs = selectByPeriod(selectTotalsByPeriodStat, start, end);
-		rs.map(ResultSet::one).forEach(r -> result.add(r.getLong(0), r.getDouble(1)));
+		rs.map(ResultSet::one).forEach(result::add);
 		return result;
 	}
 
