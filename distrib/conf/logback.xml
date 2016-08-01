@@ -4,6 +4,7 @@
 
 	<property name="msgPattern" value="%date %-5level [%thread] %logger{64} %.-1000msg%n%ex"/>
 	<property name="logFile" value="log/cds-app"/>
+	<property name="metricsFile" value="log/cds-metrics"/>
 	<property name="maxHistory" value="7"/>
 
 	<appender name="console" class="ch.qos.logback.core.ConsoleAppender">
@@ -38,6 +39,23 @@
 			<level>WARN</level>
 		</filter>
 	</appender>
+
+	<appender name="metrics.log" class="ch.qos.logback.core.rolling.RollingFileAppender">
+		<append>true</append>
+		<encoder>
+			<pattern>${msgPattern}</pattern>
+		</encoder>
+		<file>${metricsFile}</file>
+		<rollingPolicy class="ch.qos.logback.core.rolling.TimeBasedRollingPolicy">
+			<fileNamePattern>${metricsFile}.%d.log</fileNamePattern>
+			<maxHistory>${maxHistory}</maxHistory>
+			<totalSizeCap>100MB</totalSizeCap>
+		</rollingPolicy>
+	</appender>
+
+	<logger name="metrics"  level="INFO" additivity="false">
+		<appender-ref ref="metrics.log"/>
+	</logger>
 
 	<logger name="com.datastax.driver.core.Native" level="WARN"/>
 	<logger name="com.datastax.driver.core.ClockFactory" level="WARN"/>
