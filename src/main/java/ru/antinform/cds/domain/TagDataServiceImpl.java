@@ -3,6 +3,7 @@ package ru.antinform.cds.domain;
 import com.datastax.driver.core.*;
 import com.typesafe.config.Config;
 import org.slf4j.Logger;
+import ru.antinform.cds.utils.StreamUtils;
 import java.util.List;
 import java.util.stream.Stream;
 import static com.datastax.driver.core.BatchStatement.Type.LOGGED;
@@ -19,7 +20,8 @@ public class TagDataServiceImpl implements TagDataService {
 	final Session session;
 	final long datePeriod;
 	final PreparedStatement insertStat;
-	final PreparedStatement selectCountStat;
+	final PreparedStatement findByPeriodStat;
+	final PreparedStatement selectCountByPeriodStat;
 
 	public TagDataServiceImpl(Context ctx) {
 		config = ctx.mainConfig().getConfig("cds.TagDataService");
@@ -27,8 +29,13 @@ public class TagDataServiceImpl implements TagDataService {
 		if (config.getBoolean("createTable"))
 			session.execute(config.getString("createTableSql"));
 		datePeriod = config.getDuration("datePeriod", MILLISECONDS);
-		insertStat = session.prepare(config.getString("insertSql"));
-		selectCountStat = session.prepare(config.getString("selectCountStat"));
+		insertStat = prepareStatement("insert");
+		findByPeriodStat = prepareStatement("findByPeriod");
+		selectCountByPeriodStat = prepareStatement("selectCountByPeriod");
+	}
+
+	private PreparedStatement prepareStatement(String key) {
+		return session.prepare(config.getString(key + "Sql"));
 	}
 
 	public ResultSetFuture saveAll(List<TagData> data) {
@@ -49,12 +56,17 @@ public class TagDataServiceImpl implements TagDataService {
 		return (int) (time / datePeriod);
 	}
 
-	public List<TagData> findByPeriod(long start, long end) {
-		throw new UnsupportedOperationException();
+	public Stream<TagData> findByPeriod(long start, long end) {
+		Stream<ResultSet> rs = selectByPeriod(findByPeriodStat, start, end);
+		return rs.flatMap(StreamUtils::stream).map(this::readTagData);
+	}
+
+	private TagData readTagData(Row r) {
+		return new TagData(r.getString(0), r.getLong(1), r.getDouble(2), r.getInt(3));
 	}
 
 	public long selectCountByPeriod(long start, long end) {
-		Stream<ResultSet> rs = selectByPeriod(selectCountStat, start, end);
+		Stream<ResultSet> rs = selectByPeriod(selectCountByPeriodStat, start, end);
 		return rs.mapToLong(r -> r.one().getLong(0)).sum();
 	}
 
