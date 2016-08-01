@@ -41,7 +41,7 @@ public class QueryTagDataTest {
 		long time = curTime();
 		for (Long period : periods) {
 			TagDataTotals result = logCall(queryTime, () ->
-				service.selectTotalsByPeriod(time - period, time)
+				service.selectTotals(time - period, time)
 			);
 			log.info("query: period={}, time={}, result={}", period, queryTime, result);
 		}
