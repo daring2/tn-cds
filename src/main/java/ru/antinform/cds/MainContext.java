@@ -8,7 +8,9 @@ import com.typesafe.config.Config;
 import com.typesafe.config.ConfigFactory;
 import ru.antinform.cds.domain.TagDataService;
 import ru.antinform.cds.domain.TagDataServiceImpl;
+import ru.antinform.cds.metrics.MetricReporter;
 
+@SuppressWarnings("WeakerAccess")
 public class MainContext implements AutoCloseable, TagDataServiceImpl.Context {
 
 	//TODO consider to use DI container
@@ -16,6 +18,7 @@ public class MainContext implements AutoCloseable, TagDataServiceImpl.Context {
 	Config mainConfig = ConfigFactory.load();
 	Session session = createSession();
 	TagDataService tagDataService = new TagDataServiceImpl(this);
+	MetricReporter metricReporter = new MetricReporter(mainConfig);
 
 	private Session createSession() {
 		Config c = mainConfig.getConfig("cds.session");
