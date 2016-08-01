@@ -45,7 +45,7 @@
 		<encoder>
 			<pattern>${msgPattern}</pattern>
 		</encoder>
-		<file>${metricsFile}</file>
+		<file>${metricsFile}.log</file>
 		<rollingPolicy class="ch.qos.logback.core.rolling.TimeBasedRollingPolicy">
 			<fileNamePattern>${metricsFile}.%d.log</fileNamePattern>
 			<maxHistory>${maxHistory}</maxHistory>
