@@ -18,7 +18,7 @@ import static org.slf4j.LoggerFactory.getLogger;
 
 @SuppressWarnings("WeakerAccess")
 @NotThreadSafe
-class SaveTest {
+class SaveTagDataTest {
 
 	final Logger log = getLogger(getClass());
 
@@ -31,9 +31,9 @@ class SaveTest {
 
 	long saveTime;
 
-	public SaveTest(Context ctx) {
+	public SaveTagDataTest(Context ctx) {
 		this.ctx = ctx;
-		config = ctx.mainConfig().getConfig("cds.test.SaveTest");
+		config = ctx.mainConfig().getConfig("cds.test.SaveTagDataTest");
 		tagCount = config.getInt("tagCount");
 		savePeriod = config.getDuration("savePeriod", MILLISECONDS);
 		runTime = config.getDuration("runTime", MILLISECONDS);

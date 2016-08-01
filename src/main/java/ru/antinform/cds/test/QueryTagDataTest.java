@@ -11,7 +11,7 @@ import static org.slf4j.LoggerFactory.getLogger;
 import static ru.antinform.cds.utils.ProfileUtils.logCall;
 
 @SuppressWarnings("WeakerAccess")
-public class QueryTest {
+public class QueryTagDataTest {
 
 	final Logger log = getLogger(getClass());
 
@@ -22,8 +22,8 @@ public class QueryTest {
 
 	final Stopwatch queryTime = Stopwatch.createUnstarted();
 
-	public QueryTest(Context ctx) {
-		config = ctx.mainConfig().getConfig("cds.test.QueryTest");
+	public QueryTagDataTest(Context ctx) {
+		config = ctx.mainConfig().getConfig("cds.test.QueryTagDataTest");
 		runTime = config.getDuration("runTime", MILLISECONDS);
 		periods = config.getDurationList("periods", MILLISECONDS);
 		service = ctx.tagDataService();

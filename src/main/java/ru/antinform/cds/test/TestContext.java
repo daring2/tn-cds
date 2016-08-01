@@ -10,7 +10,9 @@ import ru.antinform.cds.domain.TagDataService;
 import ru.antinform.cds.domain.TagDataServiceImpl;
 
 @SuppressWarnings("WeakerAccess")
-class TestContext implements AutoCloseable, TagDataServiceImpl.Context, SaveTest.Context, QueryTest.Context {
+class TestContext implements AutoCloseable, TagDataServiceImpl.Context,
+	SaveTagDataTest.Context, QueryTagDataTest.Context
+{
 
 	//TODO consider to use DI container
 
