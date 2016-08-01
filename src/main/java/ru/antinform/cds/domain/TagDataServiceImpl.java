@@ -1,8 +1,10 @@
 package ru.antinform.cds.domain;
 
+import com.codahale.metrics.Timer;
 import com.datastax.driver.core.*;
 import com.typesafe.config.Config;
 import org.slf4j.Logger;
+import ru.antinform.cds.metrics.MetricBuilder;
 import ru.antinform.cds.utils.StreamUtils;
 import java.util.List;
 import java.util.stream.Stream;
@@ -10,11 +12,13 @@ import static com.datastax.driver.core.BatchStatement.Type.LOGGED;
 import static java.util.concurrent.TimeUnit.MILLISECONDS;
 import static java.util.stream.IntStream.range;
 import static org.slf4j.LoggerFactory.getLogger;
+import static ru.antinform.cds.metrics.MetricUtils.meterCall;
 
 @SuppressWarnings("WeakerAccess")
 public class TagDataServiceImpl implements TagDataService {
 
 	final Logger log = getLogger(getClass());
+	final Metrics metrics = new Metrics();
 
 	final Config config;
 	final Session session;
@@ -39,6 +43,7 @@ public class TagDataServiceImpl implements TagDataService {
 	}
 
 	public ResultSetFuture saveAll(List<TagData> data) {
+		log.debug("saveAll(data.size={})", data.size());
 		BatchStatement batch = newBatchStatement();
 		for (TagData d : data) {
 			batch.add(insertStat.bind(d.tag, calcDate(d.time), d.time, d.value, d.quality));
@@ -57,15 +62,21 @@ public class TagDataServiceImpl implements TagDataService {
 	}
 
 	public Stream<TagData> findByPeriod(long start, long end) {
-		Stream<ResultSet> rs = selectByPeriod(findByPeriodStat, start, end);
-		return rs.flatMap(StreamUtils::stream).map(TagData::read);
+		log.debug("findByPeriod(start={}, end={})", start, end);
+		return meterCall(metrics.findByPeriod, () -> {
+			Stream<ResultSet> rs = selectByPeriod(findByPeriodStat, start, end);
+			return rs.flatMap(StreamUtils::stream).map(TagData::read);
+		});
 	}
 
 	public TagDataTotals selectTotals(long start, long end) {
-		TagDataTotals result = new TagDataTotals();
-		Stream<ResultSet> rs = selectByPeriod(selectTotalsStat, start, end);
-		rs.map(ResultSet::one).forEach(result::add);
-		return result;
+		log.debug("selectTotals(start={}, end={})", start, end);
+		return meterCall(metrics.selectTotals, () -> {
+			TagDataTotals result = new TagDataTotals();
+			Stream<ResultSet> rs = selectByPeriod(selectTotalsStat, start, end);
+			rs.map(ResultSet::one).forEach(result::add);
+			return result;
+		});
 	}
 
 	private Stream<ResultSet> selectByPeriod(PreparedStatement stat, long start, long end) {
@@ -77,6 +88,12 @@ public class TagDataServiceImpl implements TagDataService {
 	public interface Context {
 		Config mainConfig();
 		Session session();
+	}
+
+	static class Metrics {
+		final MetricBuilder mb = new MetricBuilder("TagDataService");
+		final Timer findByPeriod = mb.timer("findByPeriod");
+		final Timer selectTotals = mb.timer("selectTotals");
 	}
 
 }
