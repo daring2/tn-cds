@@ -25,6 +25,7 @@ public class MetricReporter {
 
 	private void createJmxReporter() {
 		JmxReporter r = JmxReporter.forRegistry(metricRegistry()).
+			inDomain("ru.antinform.cds").
 			createsObjectNamesWith(new JmxObjectNameFactory()).
 			build();
 		r.start();

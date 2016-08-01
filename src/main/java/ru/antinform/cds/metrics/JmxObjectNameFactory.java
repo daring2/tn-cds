@@ -9,8 +9,8 @@ class JmxObjectNameFactory implements ObjectNameFactory {
 	@Override
 	public ObjectName createName(String type, String domain, String name) {
 		try {
-			if (name.contains(":")) {
-				return new ObjectName(name);
+			if (name.contains("=")) {
+				return new ObjectName(domain + ":" + name);
 			} else {
 				return new ObjectName(domain, "name", ObjectName.quote(name));
 			}

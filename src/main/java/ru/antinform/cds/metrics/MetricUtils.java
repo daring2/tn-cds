@@ -8,7 +8,6 @@ import java.util.function.Supplier;
 public class MetricUtils {
 
 	static final MetricRegistry Registry = new MetricRegistry();
-	static final String RootPackage = "ru.antinform.cds";
 
 	public static MetricRegistry metricRegistry() {
 		return Registry;
