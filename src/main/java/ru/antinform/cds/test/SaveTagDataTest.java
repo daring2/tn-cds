@@ -47,7 +47,7 @@ class SaveTagDataTest {
 		int saveCount = (int) (runTime / savePeriod);
 		for (int i = 0; i < saveCount; i++) {
 			long start = curTime();
-			saveValues(start);
+			saveValues(start, i);
 			long callTime = curTime() - start;
 			saveTime += callTime;
 			long wait = savePeriod - callTime;
@@ -57,10 +57,10 @@ class SaveTagDataTest {
 		log.info("result: tags={}, saves={}, time={}, vps={}", tagCount, saveCount, saveTime, vps);
 	}
 
-	private void saveValues(long time) throws Exception {
+	private void saveValues(long time, int vi) throws Exception {
 		List<TagData> data = new ArrayList<>(tagCount);
 		for (int i = 0; i < tagCount; i++)
-			data.add(new TagData("t" + i, time, time + i, 0));
+			data.add(new TagData("t" + i, time, vi + i, 0));
 		ListenableFuture<?> rf = ctx.tagDataService().saveAll(data);
 		rf.addListener(asyncLock::release, directExecutor());
 		asyncLock.acquire();
