@@ -1,1 +1,2 @@
-ext.cdsVersion= '0.2-SNAPSHOT'
+if (!project.hasProperty("cdsVersion"))
+	ext.cdsVersion= '0.2-SNAPSHOT'
