@@ -42,4 +42,4 @@ allprojects {
 
 }
 
-uploadArchives.enabled = false
+apply from: 'private.gradle'
