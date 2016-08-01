@@ -4,6 +4,7 @@ import com.google.common.base.Stopwatch;
 import com.typesafe.config.Config;
 import org.slf4j.Logger;
 import ru.antinform.cds.domain.TagDataService;
+import ru.antinform.cds.domain.TagDataTotals;
 import java.util.List;
 import static java.lang.System.currentTimeMillis;
 import static java.util.concurrent.TimeUnit.MILLISECONDS;
@@ -39,10 +40,10 @@ public class QueryTagDataTest {
 	private void runQueries() throws Exception {
 		long time = curTime();
 		for (Long period : periods) {
-			Long result = logCall(queryTime, () ->
-				service.selectCountByPeriod(time - period, time)
+			TagDataTotals result = logCall(queryTime, () ->
+				service.selectTotalsByPeriod(time - period, time)
 			);
-			log.info("query: period={}, result={}, time={}", period, result, queryTime);
+			log.info("query: period={}, time={}, result={}", period, queryTime, result);
 		}
 	}
 

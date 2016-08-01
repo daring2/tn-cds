@@ -21,7 +21,7 @@ public class TagDataServiceImpl implements TagDataService {
 	final long datePeriod;
 	final PreparedStatement insertStat;
 	final PreparedStatement findByPeriodStat;
-	final PreparedStatement selectCountByPeriodStat;
+	final PreparedStatement selectTotalsByPeriodStat;
 
 	public TagDataServiceImpl(Context ctx) {
 		config = ctx.mainConfig().getConfig("cds.TagDataService");
@@ -31,7 +31,7 @@ public class TagDataServiceImpl implements TagDataService {
 		datePeriod = config.getDuration("datePeriod", MILLISECONDS);
 		insertStat = prepareStatement("insert");
 		findByPeriodStat = prepareStatement("findByPeriod");
-		selectCountByPeriodStat = prepareStatement("selectCountByPeriod");
+		selectTotalsByPeriodStat = prepareStatement("selectTotalsByPeriod");
 	}
 
 	private PreparedStatement prepareStatement(String key) {
@@ -65,9 +65,11 @@ public class TagDataServiceImpl implements TagDataService {
 		return new TagData(r.getString(0), r.getLong(1), r.getDouble(2), r.getInt(3));
 	}
 
-	public long selectCountByPeriod(long start, long end) {
-		Stream<ResultSet> rs = selectByPeriod(selectCountByPeriodStat, start, end);
-		return rs.mapToLong(r -> r.one().getLong(0)).sum();
+	public TagDataTotals selectTotalsByPeriod(long start, long end) {
+		TagDataTotals result = new TagDataTotals();
+		Stream<ResultSet> rs = selectByPeriod(selectTotalsByPeriodStat, start, end);
+		rs.map(ResultSet::one).forEach(r -> result.add(r.getLong(0), r.getDouble(1)));
+		return result;
 	}
 
 	private Stream<ResultSet> selectByPeriod(PreparedStatement stat, long start, long end) {
