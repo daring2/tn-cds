@@ -11,6 +11,7 @@ public class TestApp {
 		try (TestContext ctx = new TestContext()) {
 			new SaveTagDataTest(ctx).run();
 			new QueryTagDataTest(ctx).run();
+			new TagDataServiceTest(ctx).run();
 		} catch (Exception e) {
 			log.error("run error", e);
 		}

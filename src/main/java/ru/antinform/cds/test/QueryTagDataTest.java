@@ -29,7 +29,7 @@ public class QueryTagDataTest {
 		service = ctx.tagDataService();
 	}
 
-	void run() throws Exception {
+	public void run() throws Exception {
 		long end = runTime + curTime();
 		while (curTime() <= end) {
 			runQueries();

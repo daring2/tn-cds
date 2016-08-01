@@ -31,7 +31,7 @@ class SaveTagDataTest {
 
 	long saveTime;
 
-	public SaveTagDataTest(Context ctx) {
+	SaveTagDataTest(Context ctx) {
 		this.ctx = ctx;
 		config = ctx.mainConfig().getConfig("cds.test.SaveTagDataTest");
 		tagCount = config.getInt("tagCount");
@@ -40,7 +40,7 @@ class SaveTagDataTest {
 		asyncLock = new Semaphore(config.getInt("asyncPermits"));
 	}
 
-	public void run() throws Exception {
+	void run() throws Exception {
 		if (config.getBoolean("truncateDataTable"))
 			ctx.session().execute("truncate tag_data");
 		saveTime = 0;
