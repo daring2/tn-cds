@@ -31,6 +31,7 @@ allprojects {
 		compile 'com.google.code.findbugs:jsr305:3.0.1'
 		compile 'com.datastax.cassandra:cassandra-driver-core:' + cassandraDriverVersion
 		compile 'com.datastax.cassandra:cassandra-driver-extras:' + cassandraDriverVersion
+		compile 'io.dropwizard.metrics:metrics-core:3.1.2'
 		testCompile 'junit:junit:4.12'
 		testCompile 'org.mockito:mockito-all:1.10.19'
 	}
