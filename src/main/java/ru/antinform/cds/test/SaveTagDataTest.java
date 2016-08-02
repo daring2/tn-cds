@@ -49,6 +49,7 @@ class SaveTagDataTest extends BaseBean {
 			long wait = savePeriod - callTime;
 			if (wait > 0) sleep(wait);
 		}
+		for (Future<?> f : resultQueue) f.get();
 		long vps = tagCount * saveCount / (saveTime / 1000);
 		log.info("result: tags={}, saves={}, time={}, vps={}", tagCount, saveCount, saveTime, vps);
 	}
