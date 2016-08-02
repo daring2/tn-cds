@@ -7,7 +7,7 @@ import ru.antinform.cds.domain.TagDataTotals;
 import ru.antinform.cds.metrics.MetricBuilder;
 import ru.antinform.cds.utils.BaseBean;
 import java.util.List;
-import java.util.concurrent.Executor;
+import java.util.concurrent.ExecutorService;
 import static java.lang.System.currentTimeMillis;
 import static java.util.concurrent.Executors.newFixedThreadPool;
 import static java.util.concurrent.TimeUnit.MILLISECONDS;
@@ -25,7 +25,7 @@ public class QueryTagDataTest extends BaseBean {
 	final int threadCount = config.getInt("threadCount");
 	final List<QueryDef> queries = buildQueries();
 	final TagDataService service;
-	final Executor executor;
+	final ExecutorService executor;
 
 	public QueryTagDataTest(Context ctx) {
 		super(ctx.mainConfig(), Name);
@@ -38,8 +38,8 @@ public class QueryTagDataTest extends BaseBean {
 		return periods.stream().map(QueryDef::new).collect(toList());
 	}
 
-	private Executor createExecutor() {
-		return newFixedThreadPool(threadCount, newThreadFactory(Name + "-%d", true));
+	private ExecutorService createExecutor() {
+		return newFixedThreadPool(threadCount, newThreadFactory(Name + "-%d", false));
 	}
 
 	public void run() throws Exception {
