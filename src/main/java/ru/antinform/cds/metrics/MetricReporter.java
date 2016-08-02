@@ -40,6 +40,8 @@ public class MetricReporter {
 
 	private void createCsvReporter() {
 		File dir = new File(config.getString("csv.dir"));
+		if (!dir.exists() && !dir.mkdirs())
+			throw new RuntimeException("cannot create dir " + dir);
 		CsvReporter r = CsvReporter.forRegistry(metricRegistry()).formatFor(Locale.ROOT).build(dir);
 		Duration period = config.getDuration("csv.period");
 		r.start(period.toMillis(), MILLISECONDS);

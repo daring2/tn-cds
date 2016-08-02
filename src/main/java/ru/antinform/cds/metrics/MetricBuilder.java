@@ -17,7 +17,7 @@ public class MetricBuilder {
 	}
 
 	public String metricName(String name) {
-		return format("component=%s,name=%s", component, name);
+		return format("%s,name=%s", component, name);
 	}
 
 	public Timer timer(String name) {
