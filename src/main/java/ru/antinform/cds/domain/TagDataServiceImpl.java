@@ -41,14 +41,15 @@ public class TagDataServiceImpl extends BaseBean implements TagDataService {
 
 	public ResultSetFuture saveAll(List<TagData> data) {
 		log.debug("saveAll(data.size={})", data.size());
-		Timer.Context tc = metrics.saveAll.time();
-		BatchStatement batch = newBatchStatement();
-		for (TagData d : data) {
-			batch.add(insertStat.bind(d.tag, calcDate(d.time), d.time, d.value, d.quality));
-		}
-		ResultSetFuture rf = session.executeAsync(batch);
-		rf.addListener(tc::stop, directExecutor());
-		return rf;
+		return meterCall(metrics.saveAllAsync, () -> {
+			Timer.Context tc = metrics.saveAll.time();
+			BatchStatement batch = newBatchStatement();
+			for (TagData d : data)
+				batch.add(insertStat.bind(d.tag, calcDate(d.time), d.time, d.value, d.quality));
+			ResultSetFuture rf = session.executeAsync(batch);
+			rf.addListener(tc::stop, directExecutor());
+			return rf;
+		});
 	}
 
 	private BatchStatement newBatchStatement() {
@@ -93,6 +94,7 @@ public class TagDataServiceImpl extends BaseBean implements TagDataService {
 	static class Metrics {
 		final MetricBuilder mb = new MetricBuilder("TagDataService");
 		final Timer saveAll = mb.timer("saveAll");
+		final Timer saveAllAsync = mb.timer("saveAllAsync");
 		final Timer findByPeriod = mb.timer("findByPeriod");
 		final Timer selectTotals = mb.timer("selectTotals");
 	}
