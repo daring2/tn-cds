@@ -13,7 +13,7 @@ import static java.lang.System.currentTimeMillis;
 import static java.util.concurrent.Executors.newFixedThreadPool;
 import static java.util.concurrent.TimeUnit.MILLISECONDS;
 import static java.util.stream.Collectors.toList;
-import static java.util.stream.IntStream.range;
+import static java.util.stream.Stream.generate;
 import static ru.antinform.cds.metrics.MetricUtils.nanoToMillis;
 import static ru.antinform.cds.utils.ConcurrentUtils.newThreadFactory;
 
@@ -56,9 +56,8 @@ public class QueryTagDataTest extends BaseBean {
 	}
 
 	private List<Future<Long>> submitQueryTasks() {
-		return range(0, threadCount).
-			mapToObj(i -> executor.submit(this::runQueries)).
-			collect(toList());
+		return generate(() -> executor.submit(this::runQueries)).
+			limit(threadCount).collect(toList());
 	}
 
 	private long runQueries() throws Exception {
