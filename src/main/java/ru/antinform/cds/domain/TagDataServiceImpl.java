@@ -9,6 +9,7 @@ import ru.antinform.cds.utils.StreamUtils;
 import java.util.List;
 import java.util.stream.Stream;
 import static com.datastax.driver.core.BatchStatement.Type.LOGGED;
+import static com.google.common.util.concurrent.MoreExecutors.directExecutor;
 import static java.util.concurrent.TimeUnit.MILLISECONDS;
 import static java.util.stream.IntStream.range;
 import static ru.antinform.cds.metrics.MetricUtils.meterCall;
@@ -40,11 +41,14 @@ public class TagDataServiceImpl extends BaseBean implements TagDataService {
 
 	public ResultSetFuture saveAll(List<TagData> data) {
 		log.debug("saveAll(data.size={})", data.size());
+		Timer.Context tc = metrics.saveAll.time();
 		BatchStatement batch = newBatchStatement();
 		for (TagData d : data) {
 			batch.add(insertStat.bind(d.tag, calcDate(d.time), d.time, d.value, d.quality));
 		}
-		return session.executeAsync(batch);
+		ResultSetFuture rf = session.executeAsync(batch);
+		rf.addListener(tc::stop, directExecutor());
+		return rf;
 	}
 
 	private BatchStatement newBatchStatement() {
@@ -88,6 +92,7 @@ public class TagDataServiceImpl extends BaseBean implements TagDataService {
 
 	static class Metrics {
 		final MetricBuilder mb = new MetricBuilder("TagDataService");
+		final Timer saveAll = mb.timer("saveAll");
 		final Timer findByPeriod = mb.timer("findByPeriod");
 		final Timer selectTotals = mb.timer("selectTotals");
 	}
