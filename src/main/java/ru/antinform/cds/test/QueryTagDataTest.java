@@ -7,23 +7,30 @@ import ru.antinform.cds.domain.TagDataTotals;
 import ru.antinform.cds.metrics.MetricBuilder;
 import ru.antinform.cds.utils.BaseBean;
 import java.util.List;
+import java.util.concurrent.Executor;
 import static java.lang.System.currentTimeMillis;
+import static java.util.concurrent.Executors.newFixedThreadPool;
 import static java.util.concurrent.TimeUnit.MILLISECONDS;
 import static java.util.stream.Collectors.toList;
 import static ru.antinform.cds.metrics.MetricUtils.nanoToMillis;
+import static ru.antinform.cds.utils.ConcurrentUtils.newThreadFactory;
 
 @SuppressWarnings("WeakerAccess")
 public class QueryTagDataTest extends BaseBean {
 
-	final MetricBuilder mb = new MetricBuilder("QueryTagDataTest");
+	final static String Name = "QueryTagDataTest";
 
+	final MetricBuilder mb = new MetricBuilder(Name);
 	final long runTime = config.getDuration("runTime", MILLISECONDS);
+	final int threadCount = config.getInt("threadCount");
 	final List<QueryDef> queries = buildQueries();
 	final TagDataService service;
+	final Executor executor;
 
 	public QueryTagDataTest(Context ctx) {
-		super(ctx.mainConfig(), "cds.test.QueryTagDataTest");
+		super(ctx.mainConfig(), Name);
 		service = ctx.tagDataService();
+		executor = createExecutor();
 	}
 
 	private List<QueryDef> buildQueries() {
@@ -31,10 +38,15 @@ public class QueryTagDataTest extends BaseBean {
 		return periods.stream().map(QueryDef::new).collect(toList());
 	}
 
+	private Executor createExecutor() {
+		return newFixedThreadPool(threadCount, newThreadFactory(Name + "-%d", true));
+	}
+
 	public void run() throws Exception {
 		long end = runTime + curTime();
-		while (curTime() <= end)
+		while (curTime() <= end) {
 			runQueries();
+		}
 		for (QueryDef q : queries) {
 			long mean = nanoToMillis((long) q.timer.getSnapshot().getMean());
 			log.info("query-{}: mean={}", q.period, mean);
