@@ -7,7 +7,7 @@ classes/
 target/
 /private.gradle
 
-/data/
+/result/
 /log/
 /tmp/
 /build/classes/
