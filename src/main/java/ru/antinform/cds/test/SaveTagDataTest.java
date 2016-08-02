@@ -9,8 +9,9 @@ import ru.antinform.cds.domain.TagDataService;
 import javax.annotation.concurrent.NotThreadSafe;
 import java.util.ArrayList;
 import java.util.List;
-import java.util.concurrent.Semaphore;
-import static com.google.common.util.concurrent.MoreExecutors.directExecutor;
+import java.util.concurrent.BlockingQueue;
+import java.util.concurrent.Future;
+import java.util.concurrent.LinkedBlockingQueue;
 import static java.lang.System.currentTimeMillis;
 import static java.lang.Thread.sleep;
 import static java.util.concurrent.TimeUnit.MILLISECONDS;
@@ -27,7 +28,9 @@ class SaveTagDataTest {
 	final int tagCount;
 	final long savePeriod;
 	final long runTime;
-	final Semaphore asyncLock;
+	final int asyncDelay;
+
+	final BlockingQueue<Future<?>> resultQueue = new LinkedBlockingQueue<>();
 
 	long saveTime;
 
@@ -37,7 +40,7 @@ class SaveTagDataTest {
 		tagCount = config.getInt("tagCount");
 		savePeriod = config.getDuration("savePeriod", MILLISECONDS);
 		runTime = config.getDuration("runTime", MILLISECONDS);
-		asyncLock = new Semaphore(config.getInt("asyncPermits"));
+		asyncDelay = config.getInt("asyncDelay");
 	}
 
 	void run() throws Exception {
@@ -48,6 +51,7 @@ class SaveTagDataTest {
 		for (int i = 0; i < saveCount; i++) {
 			long start = curTime();
 			saveValues(start, i);
+			if (i >= asyncDelay) resultQueue.take().get();
 			long callTime = curTime() - start;
 			saveTime += callTime;
 			long wait = savePeriod - callTime;
@@ -62,8 +66,7 @@ class SaveTagDataTest {
 		for (int i = 0; i < tagCount; i++)
 			data.add(new TagData("t" + i, time, vi + i, 0));
 		ListenableFuture<?> rf = ctx.tagDataService().saveAll(data);
-		rf.addListener(asyncLock::release, directExecutor());
-		asyncLock.acquire();
+		resultQueue.put(rf);
 	}
 
 	private long curTime() {
