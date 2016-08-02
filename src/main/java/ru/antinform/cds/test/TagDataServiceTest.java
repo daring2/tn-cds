@@ -25,7 +25,7 @@ class TagDataServiceTest {
 		long r1 = ctx.tagDataService().findByPeriod(time + 1, endTime).count();
 		if (r1 != 0) throw new RuntimeException("r1 = " + r1);
 		Stream<TagData> rs = ctx.tagDataService().findByPeriod(time, endTime).limit(5);
-		log.info(rs.map(Object::toString).collect(joining(", ")));
+		log.info("result:\n" + rs.map(Object::toString).collect(joining("\n")));
 	}
 
 	interface Context {

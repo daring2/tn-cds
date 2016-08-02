@@ -9,8 +9,8 @@ import ru.antinform.cds.utils.BaseBean;
 import java.util.List;
 import static java.lang.System.currentTimeMillis;
 import static java.util.concurrent.TimeUnit.MILLISECONDS;
-import static java.util.concurrent.TimeUnit.NANOSECONDS;
 import static java.util.stream.Collectors.toList;
+import static ru.antinform.cds.metrics.MetricUtils.nanoToMillis;
 
 @SuppressWarnings("WeakerAccess")
 public class QueryTagDataTest extends BaseBean {
@@ -33,8 +33,11 @@ public class QueryTagDataTest extends BaseBean {
 
 	public void run() throws Exception {
 		long end = runTime + curTime();
-		while (curTime() <= end) {
+		while (curTime() <= end)
 			runQueries();
+		for (QueryDef q : queries) {
+			long mean = nanoToMillis((long) q.timer.getSnapshot().getMean());
+			log.info("query-{}: mean={}", q.period, mean);
 		}
 	}
 
@@ -43,7 +46,7 @@ public class QueryTagDataTest extends BaseBean {
 		for (QueryDef q : queries) {
 			Timer.Context tc = q.timer.time();
 			TagDataTotals result = service.selectTotals(time - q.period, time);
-			long et = NANOSECONDS.toMillis(tc.stop());
+			long et = nanoToMillis(tc.stop());
 			log.debug("query: period={}, time={}, result={}", q.period, et, result);
 		}
 	}

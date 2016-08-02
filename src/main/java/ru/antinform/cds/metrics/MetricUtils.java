@@ -3,6 +3,7 @@ package ru.antinform.cds.metrics;
 import com.codahale.metrics.MetricRegistry;
 import com.codahale.metrics.Timer;
 import java.util.function.Supplier;
+import static java.util.concurrent.TimeUnit.NANOSECONDS;
 
 @SuppressWarnings("WeakerAccess")
 public class MetricUtils {
@@ -19,6 +20,10 @@ public class MetricUtils {
 		} catch (Exception e) {
 			throw new RuntimeException(e);
 		}
+	}
+
+	public static long nanoToMillis(long nanos) {
+		return NANOSECONDS.toMillis(nanos);
 	}
 
 	private MetricUtils() {
