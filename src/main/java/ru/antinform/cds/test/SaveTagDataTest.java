@@ -3,9 +3,9 @@ package ru.antinform.cds.test;
 import com.datastax.driver.core.Session;
 import com.google.common.util.concurrent.ListenableFuture;
 import com.typesafe.config.Config;
-import org.slf4j.Logger;
 import ru.antinform.cds.domain.TagData;
 import ru.antinform.cds.domain.TagDataService;
+import ru.antinform.cds.utils.BaseBean;
 import javax.annotation.concurrent.NotThreadSafe;
 import java.util.ArrayList;
 import java.util.List;
@@ -15,32 +15,24 @@ import java.util.concurrent.LinkedBlockingQueue;
 import static java.lang.System.currentTimeMillis;
 import static java.lang.Thread.sleep;
 import static java.util.concurrent.TimeUnit.MILLISECONDS;
-import static org.slf4j.LoggerFactory.getLogger;
 
 @SuppressWarnings("WeakerAccess")
 @NotThreadSafe
-class SaveTagDataTest {
-
-	final Logger log = getLogger(getClass());
+class SaveTagDataTest extends BaseBean {
 
 	final Context ctx;
-	final Config config;
-	final int tagCount;
-	final long savePeriod;
-	final long runTime;
-	final int asyncDelay;
+	final int tagCount = config.getInt("tagCount");
+	final long savePeriod = config.getDuration("savePeriod", MILLISECONDS);
+	final long runTime = config.getDuration("runTime", MILLISECONDS);
+	final int asyncDelay = config.getInt("asyncDelay");
 
 	final BlockingQueue<Future<?>> resultQueue = new LinkedBlockingQueue<>();
 
 	long saveTime;
 
 	SaveTagDataTest(Context ctx) {
+		super(ctx.mainConfig(), "cds.test.SaveTagDataTest");
 		this.ctx = ctx;
-		config = ctx.mainConfig().getConfig("cds.test.SaveTagDataTest");
-		tagCount = config.getInt("tagCount");
-		savePeriod = config.getDuration("savePeriod", MILLISECONDS);
-		runTime = config.getDuration("runTime", MILLISECONDS);
-		asyncDelay = config.getInt("asyncDelay");
 	}
 
 	void run() throws Exception {

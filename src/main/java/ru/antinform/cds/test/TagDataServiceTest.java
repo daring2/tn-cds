@@ -6,7 +6,7 @@ import static java.util.concurrent.TimeUnit.MINUTES;
 
 class TagDataServiceTest {
 
-	final Context ctx;
+	private final Context ctx;
 
 	TagDataServiceTest(Context ctx) {
 		this.ctx = ctx;

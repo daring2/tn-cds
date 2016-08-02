@@ -3,36 +3,32 @@ package ru.antinform.cds.domain;
 import com.codahale.metrics.Timer;
 import com.datastax.driver.core.*;
 import com.typesafe.config.Config;
-import org.slf4j.Logger;
 import ru.antinform.cds.metrics.MetricBuilder;
+import ru.antinform.cds.utils.BaseBean;
 import ru.antinform.cds.utils.StreamUtils;
 import java.util.List;
 import java.util.stream.Stream;
 import static com.datastax.driver.core.BatchStatement.Type.LOGGED;
 import static java.util.concurrent.TimeUnit.MILLISECONDS;
 import static java.util.stream.IntStream.range;
-import static org.slf4j.LoggerFactory.getLogger;
 import static ru.antinform.cds.metrics.MetricUtils.meterCall;
 
 @SuppressWarnings("WeakerAccess")
-public class TagDataServiceImpl implements TagDataService {
+public class TagDataServiceImpl extends BaseBean implements TagDataService {
 
-	final Logger log = getLogger(getClass());
 	final Metrics metrics = new Metrics();
 
-	final Config config;
+	final long datePeriod = config.getDuration("datePeriod", MILLISECONDS);
 	final Session session;
-	final long datePeriod;
 	final PreparedStatement insertStat;
 	final PreparedStatement findByPeriodStat;
 	final PreparedStatement selectTotalsStat;
 
 	public TagDataServiceImpl(Context ctx) {
-		config = ctx.mainConfig().getConfig("cds.TagDataService");
+		super(ctx.mainConfig(), "cds.TagDataService");
 		session = ctx.session();
 		if (config.getBoolean("createTable"))
 			session.execute(config.getString("createTableSql"));
-		datePeriod = config.getDuration("datePeriod", MILLISECONDS);
 		insertStat = prepareStatement("insert");
 		findByPeriodStat = prepareStatement("findByPeriod");
 		selectTotalsStat = prepareStatement("selectTotals");

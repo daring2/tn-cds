@@ -2,32 +2,27 @@ package ru.antinform.cds.test;
 
 import com.codahale.metrics.Timer;
 import com.typesafe.config.Config;
-import org.slf4j.Logger;
 import ru.antinform.cds.domain.TagDataService;
 import ru.antinform.cds.domain.TagDataTotals;
 import ru.antinform.cds.metrics.MetricBuilder;
+import ru.antinform.cds.utils.BaseBean;
 import java.util.List;
 import static java.lang.System.currentTimeMillis;
 import static java.util.concurrent.TimeUnit.MILLISECONDS;
 import static java.util.concurrent.TimeUnit.NANOSECONDS;
 import static java.util.stream.Collectors.toList;
-import static org.slf4j.LoggerFactory.getLogger;
 
 @SuppressWarnings("WeakerAccess")
-public class QueryTagDataTest {
+public class QueryTagDataTest extends BaseBean {
 
-	final Logger log = getLogger(getClass());
 	final MetricBuilder mb = new MetricBuilder("QueryTagDataTest");
 
-	final Config config;
-	final long runTime;
-	final List<QueryDef> queries;
+	final long runTime = config.getDuration("runTime", MILLISECONDS);
+	final List<QueryDef> queries = buildQueries();
 	final TagDataService service;
 
 	public QueryTagDataTest(Context ctx) {
-		config = ctx.mainConfig().getConfig("cds.test.QueryTagDataTest");
-		runTime = config.getDuration("runTime", MILLISECONDS);
-		queries = buildQueries();
+		super(ctx.mainConfig(), "cds.test.QueryTagDataTest");
 		service = ctx.tagDataService();
 	}
 
