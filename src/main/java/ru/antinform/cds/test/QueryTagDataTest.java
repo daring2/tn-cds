@@ -9,6 +9,7 @@ import ru.antinform.cds.utils.BaseBean;
 import java.util.List;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Future;
+import java.util.concurrent.atomic.AtomicLong;
 import static java.lang.String.format;
 import static java.lang.System.currentTimeMillis;
 import static java.util.concurrent.Executors.newFixedThreadPool;
@@ -57,7 +58,7 @@ public class QueryTagDataTest extends BaseBean {
 		}
 		String result = queries.stream().map(q -> {
 			long mean = nanoToMillis((long) q.timer.getSnapshot().getMean());
-			return format("query-%s: mean=%s", q.period, mean);
+			return format("query-%s: meanTime=%s, count=%s", q.period, mean, q.count);
 		}).collect(joining("\n"));
 		log.info("result:\n" + result);
 		return result;
@@ -74,6 +75,7 @@ public class QueryTagDataTest extends BaseBean {
 			Timer.Context tc = q.timer.time();
 			TagDataTotals result = service.selectTotals(time - q.period, time);
 			long et = nanoToMillis(tc.stop());
+			q.count.incrementAndGet();
 			log.debug("query: period={}, time={}, result={}", q.period, et, result);
 		}
 		return curTime() - time;
@@ -91,6 +93,7 @@ public class QueryTagDataTest extends BaseBean {
 	class QueryDef {
 		final long period;
 		final Timer timer;
+		final AtomicLong count = new AtomicLong();
 
 		QueryDef(long period) {
 			this.period = period;
