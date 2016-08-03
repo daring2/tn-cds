@@ -13,13 +13,11 @@ import java.util.concurrent.atomic.AtomicLong;
 import static java.lang.String.format;
 import static java.lang.System.currentTimeMillis;
 import static java.lang.Thread.sleep;
-import static java.util.concurrent.Executors.newFixedThreadPool;
 import static java.util.concurrent.TimeUnit.MILLISECONDS;
 import static java.util.stream.Collectors.joining;
 import static java.util.stream.Collectors.toList;
 import static java.util.stream.Stream.generate;
 import static ru.antinform.cds.metrics.MetricUtils.nanoToMillis;
-import static ru.antinform.cds.utils.ConcurrentUtils.newThreadFactory;
 
 @SuppressWarnings("WeakerAccess")
 public class QueryTagDataTest extends BaseBean {
@@ -37,16 +35,12 @@ public class QueryTagDataTest extends BaseBean {
 	public QueryTagDataTest(Context ctx) {
 		super(ctx.mainConfig(), "cds.test." + Name);
 		service = ctx.tagDataService();
-		executor = createExecutor();
+		executor = ctx.executor();
 	}
 
 	private List<QueryDef> buildQueries() {
 		List<Long> periods = config.getDurationList("periods", MILLISECONDS);
 		return periods.stream().map(QueryDef::new).collect(toList());
-	}
-
-	private ExecutorService createExecutor() {
-		return newFixedThreadPool(threadCount + 1, newThreadFactory(Name + "-%d", true));
 	}
 
 	public Future<String> start() {
@@ -92,6 +86,7 @@ public class QueryTagDataTest extends BaseBean {
 
 	interface Context {
 		Config mainConfig();
+		ExecutorService executor();
 		TagDataService tagDataService();
 	}
 

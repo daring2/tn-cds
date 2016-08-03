@@ -9,6 +9,8 @@ import com.typesafe.config.ConfigFactory;
 import ru.antinform.cds.domain.TagDataService;
 import ru.antinform.cds.domain.TagDataServiceImpl;
 import ru.antinform.cds.metrics.MetricReporter;
+import java.util.concurrent.ExecutorService;
+import static java.util.concurrent.Executors.newCachedThreadPool;
 
 @SuppressWarnings("WeakerAccess")
 public class MainContext implements AutoCloseable, TagDataServiceImpl.Context {
@@ -16,6 +18,7 @@ public class MainContext implements AutoCloseable, TagDataServiceImpl.Context {
 	//TODO consider to use DI container
 
 	Config mainConfig = ConfigFactory.load();
+	ExecutorService executor = newCachedThreadPool();
 	Session session = createSession();
 	TagDataService tagDataService = new TagDataServiceImpl(this);
 	MetricReporter metricReporter = new MetricReporter(mainConfig);
@@ -33,9 +36,11 @@ public class MainContext implements AutoCloseable, TagDataServiceImpl.Context {
 	@Override
 	public void close() {
 		session.getCluster().close();
+		executor.shutdown();
 	}
 
 	public Config mainConfig() { return mainConfig; }
+	public ExecutorService executor() { return executor; }
 	public Session session() { return session; }
 	public TagDataService tagDataService() { return tagDataService; }
 
