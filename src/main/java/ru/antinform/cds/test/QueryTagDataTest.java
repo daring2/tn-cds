@@ -12,6 +12,7 @@ import java.util.concurrent.Future;
 import java.util.concurrent.atomic.AtomicLong;
 import static java.lang.String.format;
 import static java.lang.System.currentTimeMillis;
+import static java.lang.Thread.sleep;
 import static java.util.concurrent.Executors.newFixedThreadPool;
 import static java.util.concurrent.TimeUnit.MILLISECONDS;
 import static java.util.stream.Collectors.joining;
@@ -26,6 +27,7 @@ public class QueryTagDataTest extends BaseBean {
 	final static String Name = "QueryTagDataTest";
 
 	final MetricBuilder mb = new MetricBuilder(Name);
+	final long startDelay = config.getDuration("startDelay", MILLISECONDS);
 	final long runTime = config.getDuration("runTime", MILLISECONDS);
 	final int threadCount = config.getInt("threadCount");
 	final List<QueryDef> queries = buildQueries();
@@ -48,7 +50,10 @@ public class QueryTagDataTest extends BaseBean {
 	}
 
 	public Future<String> start() {
-		return executor.submit(this::run);
+		return executor.submit(() -> {
+			sleep(startDelay);
+			return run();
+		});
 	}
 
 	public String run() throws Exception {

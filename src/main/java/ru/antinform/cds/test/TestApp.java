@@ -9,6 +9,7 @@ public class TestApp {
 
 	public static void main(String[] args) {
 		try (TestContext ctx = new TestContext()) {
+//			new QueryTagDataTest(ctx).start();
 			new SaveTagDataTest(ctx).run();
 			new QueryTagDataTest(ctx).run();
 			new TagDataServiceTest(ctx).run();
