@@ -9,9 +9,11 @@ import ru.antinform.cds.utils.BaseBean;
 import java.util.List;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Future;
+import static java.lang.String.format;
 import static java.lang.System.currentTimeMillis;
 import static java.util.concurrent.Executors.newFixedThreadPool;
 import static java.util.concurrent.TimeUnit.MILLISECONDS;
+import static java.util.stream.Collectors.joining;
 import static java.util.stream.Collectors.toList;
 import static java.util.stream.Stream.generate;
 import static ru.antinform.cds.metrics.MetricUtils.nanoToMillis;
@@ -41,18 +43,24 @@ public class QueryTagDataTest extends BaseBean {
 	}
 
 	private ExecutorService createExecutor() {
-		return newFixedThreadPool(threadCount, newThreadFactory(Name + "-%d", true));
+		return newFixedThreadPool(threadCount + 1, newThreadFactory(Name + "-%d", true));
 	}
 
-	public void run() throws Exception {
+	public Future<String> start() {
+		return executor.submit(this::run);
+	}
+
+	public String run() throws Exception {
 		long end = runTime + curTime();
 		while (curTime() <= end) {
 			for (Future<Long> f : submitQueryTasks()) f.get();
 		}
-		for (QueryDef q : queries) {
+		String result = queries.stream().map(q -> {
 			long mean = nanoToMillis((long) q.timer.getSnapshot().getMean());
-			log.info("query-{}: mean={}", q.period, mean);
-		}
+			return format("query-%s: mean=%s", q.period, mean);
+		}).collect(joining("\n"));
+		log.info("result:\n" + result);
+		return result;
 	}
 
 	private List<Future<Long>> submitQueryTasks() {
