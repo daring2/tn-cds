@@ -36,7 +36,7 @@ public class TagDataServiceImpl extends BaseBean implements TagDataService {
 	}
 
 	private PreparedStatement prepareStatement(String key) {
-		return session.prepare(config.getString(key + "Sql"));
+		return session.prepare(config.getString(key + "Sql")).setIdempotent(true);
 	}
 
 	public ResultSetFuture saveAll(List<TagData> data) {
