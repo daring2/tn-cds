@@ -14,15 +14,17 @@ class TagDataServiceTest {
 	private final Logger log = getLogger(getClass());
 
 	private final Context ctx;
+	private final TagDataService service;
 
 	TagDataServiceTest(Context ctx) {
 		this.ctx = ctx;
+		this.service = ctx.tagDataService();
 	}
 
 	void run() {
-		long time = ctx.session().execute("select time from tag_data limit 1").one().getLong(0);
+		long time = service.selectLastTime();
 		long endTime = time + MINUTES.toMillis(1);
-		long r1 = ctx.tagDataService().findByPeriod(time + 1, endTime).count();
+		long r1 = service.findByPeriod(time + 1, endTime).count();
 		if (r1 != 0) throw new RuntimeException("r1 = " + r1);
 		Stream<TagData> rs = ctx.tagDataService().findByPeriod(time, endTime).limit(5);
 		log.info("result:\n" + rs.map(Object::toString).collect(joining("\n")));

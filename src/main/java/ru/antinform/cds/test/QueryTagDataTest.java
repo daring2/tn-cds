@@ -34,10 +34,14 @@ public class QueryTagDataTest extends BaseBean {
 	final TagDataService service;
 	final ExecutorService executor;
 
-	public QueryTagDataTest(Context ctx) {
-		super(ctx.mainConfig(), "cds.test." + Name);
+	public QueryTagDataTest(Context ctx, String configPath) {
+		super(ctx.mainConfig(), "cds.test." + configPath);
 		service = ctx.tagDataService();
 		executor = ctx.executor();
+	}
+
+	public QueryTagDataTest(Context ctx) {
+		this(ctx, Name);
 	}
 
 	private List<QueryDef> buildQueries() {
@@ -69,7 +73,7 @@ public class QueryTagDataTest extends BaseBean {
 	}
 
 	private void runParallel(int threads) throws Exception {
-		long time = curTime();
+		long time = service.selectLastTime();
 		List<Future<Long>> fs = generate(() ->
 			executor.submit(() -> runQueries(time, threads))
 		).limit(threads).collect(toList());
@@ -77,6 +81,7 @@ public class QueryTagDataTest extends BaseBean {
 	}
 
 	private long runQueries(long time, int threads) throws Exception {
+		long start = curTime();
 		queries.stream().filter(q -> q.threads == threads).forEach(q -> {
 			Timer.Context tc = q.timer.time();
 			TagDataTotals result = service.selectTotals(time - q.period, time);
@@ -84,7 +89,7 @@ public class QueryTagDataTest extends BaseBean {
 			q.count.incrementAndGet();
 			log.debug("query: period={}, time={}, result={}", q.period, et, result);
 		});
-		return curTime() - time;
+		return curTime() - start;
 	}
 
 	private long curTime() {
