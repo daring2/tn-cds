@@ -3,6 +3,7 @@ package ru.antinform.cds;
 import com.datastax.driver.core.Cluster;
 import com.datastax.driver.core.CodecRegistry;
 import com.datastax.driver.core.Session;
+import com.datastax.driver.core.SocketOptions;
 import com.datastax.driver.extras.codecs.date.SimpleTimestampCodec;
 import com.typesafe.config.Config;
 import com.typesafe.config.ConfigFactory;
@@ -11,6 +12,7 @@ import ru.antinform.cds.domain.TagDataServiceImpl;
 import ru.antinform.cds.metrics.MetricReporter;
 import java.util.concurrent.ExecutorService;
 import static java.util.concurrent.Executors.newCachedThreadPool;
+import static java.util.concurrent.TimeUnit.MILLISECONDS;
 
 @SuppressWarnings("WeakerAccess")
 public class MainContext implements AutoCloseable, TagDataServiceImpl.Context {
@@ -27,6 +29,8 @@ public class MainContext implements AutoCloseable, TagDataServiceImpl.Context {
 		Config c = mainConfig.getConfig("cds.session");
 		Cluster.Builder b = Cluster.builder();
 		c.getStringList("contactPoints").forEach(b::addContactPoint);
+		int readTimeout = (int) c.getDuration("readTimeout", MILLISECONDS);
+		b.withSocketOptions(new SocketOptions().setReadTimeoutMillis(readTimeout));
 		Cluster cluster = b.build();
 		CodecRegistry codecs = cluster.getConfiguration().getCodecRegistry();
 		codecs.register(new SimpleTimestampCodec());
