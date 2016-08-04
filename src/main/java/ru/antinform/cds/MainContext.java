@@ -34,7 +34,8 @@ public class MainContext implements AutoCloseable, TagDataServiceImpl.Context {
 	}
 
 	@Override
-	public void close() {
+	public void close() throws Exception {
+		metricReporter.close();
 		session.getCluster().close();
 		executor.shutdown();
 	}
