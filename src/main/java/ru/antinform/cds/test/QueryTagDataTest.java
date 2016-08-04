@@ -6,6 +6,7 @@ import ru.antinform.cds.domain.TagDataService;
 import ru.antinform.cds.domain.TagDataTotals;
 import ru.antinform.cds.metrics.MetricBuilder;
 import ru.antinform.cds.utils.BaseBean;
+import javax.annotation.concurrent.NotThreadSafe;
 import java.util.List;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Future;
@@ -20,6 +21,7 @@ import static java.util.stream.Stream.generate;
 import static ru.antinform.cds.metrics.MetricUtils.nanoToMillis;
 
 @SuppressWarnings("WeakerAccess")
+@NotThreadSafe
 public class QueryTagDataTest extends BaseBean {
 
 	final static String Name = "QueryTagDataTest";
@@ -27,7 +29,7 @@ public class QueryTagDataTest extends BaseBean {
 	final MetricBuilder mb = new MetricBuilder(Name);
 	final long startDelay = config.getDuration("startDelay", MILLISECONDS);
 	final long runTime = config.getDuration("runTime", MILLISECONDS);
-	final int threadCount = config.getInt("threadCount");
+	final List<Integer> threadCounts = config.getIntList("threadCounts");
 	final List<QueryDef> queries = buildQueries();
 	final TagDataService service;
 	final ExecutorService executor;
@@ -40,7 +42,9 @@ public class QueryTagDataTest extends BaseBean {
 
 	private List<QueryDef> buildQueries() {
 		List<Long> periods = config.getDurationList("periods", MILLISECONDS);
-		return periods.stream().map(QueryDef::new).collect(toList());
+		return periods.stream().flatMap(p ->
+			threadCounts.stream().map(tc -> new QueryDef(p, tc))
+		).collect(toList());
 	}
 
 	public Future<String> start() {
@@ -53,30 +57,33 @@ public class QueryTagDataTest extends BaseBean {
 	public String run() throws Exception {
 		long end = runTime + curTime();
 		while (curTime() <= end) {
-			for (Future<Long> f : submitQueryTasks()) f.get();
+			for (Integer tc : threadCounts)
+				runParallel(tc);
 		}
 		String result = queries.stream().map(q -> {
 			long mean = nanoToMillis((long) q.timer.getSnapshot().getMean());
-			return format("query-%s: meanTime=%s, count=%s", q.period, mean, q.count);
+			return format("%s: meanTime=%s, count=%s", q.name, mean, q.count);
 		}).collect(joining("\n"));
 		log.info("result:\n" + result);
 		return result;
 	}
 
-	private List<Future<Long>> submitQueryTasks() {
-		return generate(() -> executor.submit(this::runQueries)).
-			limit(threadCount).collect(toList());
+	private void runParallel(int threads) throws Exception {
+		List<Future<Long>> fs = generate(() ->
+			executor.submit(() -> runQueries(threads))
+		).limit(threads).collect(toList());
+		for (Future<Long> f : fs) f.get();
 	}
 
-	private long runQueries() throws Exception {
+	private long runQueries(int threads) throws Exception {
 		long time = curTime();
-		for (QueryDef q : queries) {
+		queries.stream().filter(q -> q.threads == threads).forEach(q -> {
 			Timer.Context tc = q.timer.time();
 			TagDataTotals result = service.selectTotals(time - q.period, time);
 			long et = nanoToMillis(tc.stop());
 			q.count.incrementAndGet();
 			log.debug("query: period={}, time={}, result={}", q.period, et, result);
-		}
+		});
 		return curTime() - time;
 	}
 
@@ -92,12 +99,16 @@ public class QueryTagDataTest extends BaseBean {
 
 	class QueryDef {
 		final long period;
+		final int threads;
+		final String name;
 		final Timer timer;
 		final AtomicLong count = new AtomicLong();
 
-		QueryDef(long period) {
+		QueryDef(long period, int threads) {
 			this.period = period;
-			this.timer = mb.timer("query-" + period);
+			this.threads = threads;
+			this.name = "query-p" + period + "-t" + threads;
+			this.timer = mb.timer(name);
 		}
 	}
 
