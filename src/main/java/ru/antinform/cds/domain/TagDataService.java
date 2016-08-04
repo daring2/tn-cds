@@ -10,6 +10,8 @@ public interface TagDataService {
 
 	Stream<TagData> findByPeriod(long start, long end);
 
+	long selectLastTime();
+
 	TagDataTotals selectTotals(long start, long end);
 
 }

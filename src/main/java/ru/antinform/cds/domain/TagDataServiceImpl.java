@@ -70,6 +70,11 @@ public class TagDataServiceImpl extends BaseBean implements TagDataService {
 		});
 	}
 
+	@Override
+	public long selectLastTime() {
+		return session.execute("select time from tag_data limit 1").one().getLong(0);
+	}
+
 	public TagDataTotals selectTotals(long start, long end) {
 		log.debug("selectTotals(start={}, end={})", start, end);
 		return meterCall(metrics.selectTotals, () -> {
