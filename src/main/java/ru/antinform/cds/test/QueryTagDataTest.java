@@ -55,7 +55,7 @@ public class QueryTagDataTest extends BaseBean {
 	}
 
 	public String run() throws Exception {
-		long end = runTime + curTime();
+		long end = curTime() + runTime;
 		while (curTime() <= end) {
 			for (Integer tc : threadCounts)
 				runParallel(tc);
@@ -69,14 +69,14 @@ public class QueryTagDataTest extends BaseBean {
 	}
 
 	private void runParallel(int threads) throws Exception {
+		long time = curTime();
 		List<Future<Long>> fs = generate(() ->
-			executor.submit(() -> runQueries(threads))
+			executor.submit(() -> runQueries(time, threads))
 		).limit(threads).collect(toList());
 		for (Future<Long> f : fs) f.get();
 	}
 
-	private long runQueries(int threads) throws Exception {
-		long time = curTime();
+	private long runQueries(long time, int threads) throws Exception {
 		queries.stream().filter(q -> q.threads == threads).forEach(q -> {
 			Timer.Context tc = q.timer.time();
 			TagDataTotals result = service.selectTotals(time - q.period, time);
