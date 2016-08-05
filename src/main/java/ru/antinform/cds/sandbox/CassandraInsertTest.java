@@ -82,7 +82,6 @@ class CassandraInsertTest {
 
 	private void insertValues(int vi) throws Exception  {
 		BatchStatement batch = new BatchStatement(LOGGED);
-		batch.setIdempotent(true);
 		long time = curTime + vi;
 		for (int i = 0; i < tagCount; i++) {
 			double v = vi + i;

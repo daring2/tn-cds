@@ -1,9 +1,6 @@
 package ru.antinform.cds;
 
-import com.datastax.driver.core.Cluster;
-import com.datastax.driver.core.CodecRegistry;
-import com.datastax.driver.core.Session;
-import com.datastax.driver.core.SocketOptions;
+import com.datastax.driver.core.*;
 import com.datastax.driver.extras.codecs.date.SimpleTimestampCodec;
 import com.typesafe.config.Config;
 import com.typesafe.config.ConfigFactory;
@@ -31,6 +28,7 @@ public class MainContext implements AutoCloseable, TagDataServiceImpl.Context {
 		c.getStringList("contactPoints").forEach(b::addContactPoint);
 		int readTimeout = (int) c.getDuration("readTimeout", MILLISECONDS);
 		b.withSocketOptions(new SocketOptions().setReadTimeoutMillis(readTimeout));
+		b.withQueryOptions(new QueryOptions().setDefaultIdempotence(true));
 		Cluster cluster = b.build();
 		CodecRegistry codecs = cluster.getConfiguration().getCodecRegistry();
 		codecs.register(new SimpleTimestampCodec());

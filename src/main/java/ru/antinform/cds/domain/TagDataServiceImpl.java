@@ -36,7 +36,7 @@ public class TagDataServiceImpl extends BaseBean implements TagDataService {
 	}
 
 	private PreparedStatement prepareStatement(String key) {
-		return session.prepare(config.getString(key + "Sql")).setIdempotent(true);
+		return session.prepare(config.getString(key + "Sql"));
 	}
 
 	public ResultSetFuture saveAll(List<TagData> data) {
@@ -53,9 +53,7 @@ public class TagDataServiceImpl extends BaseBean implements TagDataService {
 	}
 
 	private BatchStatement newBatchStatement() {
-		BatchStatement batch = new BatchStatement(LOGGED);
-		batch.setIdempotent(true);
-		return batch;
+		return new BatchStatement(LOGGED);
 	}
 
 	private int calcDate(long time) {
