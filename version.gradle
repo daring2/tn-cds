@@ -1,2 +1,2 @@
 if (!project.hasProperty("cdsVersion"))
-	ext.cdsVersion= '0.4-SNAPSHOT'
+	ext.cdsVersion= '0.5-SNAPSHOT'
