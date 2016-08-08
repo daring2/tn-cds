@@ -61,8 +61,7 @@ public class QueryTagDataTest extends BaseBean {
 	public String run() throws Exception {
 		long end = curTime() + runTime;
 		while (curTime() <= end) {
-			for (Integer tc : threadCounts)
-				runParallel(tc);
+			for (Integer tc : threadCounts) runParallel(tc);
 		}
 		String result = queries.stream().map(q -> {
 			long mean = nanoToMillis((long) q.timer.getSnapshot().getMean());
