@@ -28,7 +28,10 @@ public class MainContext implements AutoCloseable, TagDataServiceImpl.Context {
 		c.getStringList("contactPoints").forEach(b::addContactPoint);
 		int readTimeout = (int) c.getDuration("readTimeout", MILLISECONDS);
 		b.withSocketOptions(new SocketOptions().setReadTimeoutMillis(readTimeout));
-		b.withQueryOptions(new QueryOptions().setDefaultIdempotence(true));
+		b.withQueryOptions(new QueryOptions().
+			setDefaultIdempotence(true).
+			setFetchSize(c.getInt("fetchSize"))
+		);
 		Cluster cluster = b.build();
 		CodecRegistry codecs = cluster.getConfiguration().getCodecRegistry();
 		codecs.register(new SimpleTimestampCodec());
