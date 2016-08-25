@@ -13,7 +13,7 @@ public class TestApp {
 	public static void main(String[] args) {
 		try (TestContext ctx = new TestContext()) {
 			List<Future<?>> results = new ArrayList<>();
-			results.add(ctx.startQueryTest("QueryOnSaveTest"));
+			results.add(ctx.startQueryTest("QueryTest"));
 			if (ctx.enabledTests.contains("SaveTest"))
 				new SaveTagDataTest(ctx).run();
 			ctx.startQueryTest("LongQueryTest").get();
