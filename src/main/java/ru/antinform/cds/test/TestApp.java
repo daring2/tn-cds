@@ -13,10 +13,11 @@ public class TestApp {
 	public static void main(String[] args) {
 		try (TestContext ctx = new TestContext()) {
 			List<Future<?>> results = new ArrayList<>();
-			results.add(new QueryTagDataTest(ctx).start());
-			new SaveTagDataTest(ctx).run();
-//			new QueryTagDataTest(ctx).run();
-//			new TagDataServiceTest(ctx).run();
+			results.add(ctx.startQueryTest("QueryOnSaveTest"));
+			if (ctx.enabledTests.contains("SaveTest"))
+				new SaveTagDataTest(ctx).run();
+			ctx.startQueryTest("LongQueryTest").get();
+			ctx.startQueryTest("ParallelQueryTest").get();
 			for (Future<?> r : results) r.get();
 		} catch (Exception e) {
 			log.error("run error", e);
