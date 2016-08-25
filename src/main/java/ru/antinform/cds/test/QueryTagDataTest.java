@@ -27,6 +27,7 @@ public class QueryTagDataTest extends BaseBean {
 	final MetricBuilder mb = new MetricBuilder("QueryTagDataTest");
 	final long startDelay = config.getDuration("startDelay", MILLISECONDS);
 	final long runTime = config.getDuration("runTime", MILLISECONDS);
+	final long valueCount = config.getLong("valueCount");
 	final List<Integer> threadCounts = config.getIntList("threadCounts");
 	final List<QueryDef> queries = buildQueries();
 	final TagDataService service;
@@ -39,9 +40,9 @@ public class QueryTagDataTest extends BaseBean {
 	}
 
 	private List<QueryDef> buildQueries() {
-		List<Long> periods = config.getDurationList("periods", MILLISECONDS);
-		return periods.stream().flatMap(p ->
-			threadCounts.stream().map(tc -> new QueryDef(p, tc))
+		List<Long> limits = config.getLongList("limits");
+		return limits.stream().flatMap(l ->
+			threadCounts.stream().map(tc -> new QueryDef(l * 1000, tc))
 		).collect(toList());
 	}
 
@@ -80,7 +81,7 @@ public class QueryTagDataTest extends BaseBean {
 			TagDataTotals result = service.selectTotals(time - q.period, time);
 			long et = nanoToMillis(tc.stop());
 			q.count.incrementAndGet();
-			log.debug("query: period={}, time={}, result={}", q.period, et, result);
+			log.debug("query: limit={}, time={}, result={}", q.limit, et, result);
 		});
 		return curTime() - start;
 	}
@@ -96,16 +97,18 @@ public class QueryTagDataTest extends BaseBean {
 	}
 
 	class QueryDef {
-		final long period;
+		final long limit;
 		final int threads;
+		final long period;
 		final String name;
 		final Timer timer;
 		final AtomicLong count = new AtomicLong();
 
-		QueryDef(long period, int threads) {
-			this.period = period;
+		QueryDef(long limit, int threads) {
+			this.limit = limit;
 			this.threads = threads;
-			this.name = "query-p" + period + "-t" + threads;
+			this.period = limit / valueCount;
+			this.name = "query-l" + limit + "-t" + threads;
 			this.timer = mb.timer(name);
 		}
 	}
