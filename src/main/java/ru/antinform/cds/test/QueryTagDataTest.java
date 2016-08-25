@@ -90,7 +90,7 @@ public class QueryTagDataTest extends BaseBean {
 		return currentTimeMillis();
 	}
 
-	interface Context {
+	public interface Context {
 		Config mainConfig();
 		ExecutorService executor();
 		TagDataService tagDataService();
