@@ -42,7 +42,7 @@ public class QueryTagDataTest extends BaseBean {
 	private List<QueryDef> buildQueries() {
 		List<Long> limits = config.getLongList("limits");
 		return limits.stream().flatMap(l ->
-			threadCounts.stream().map(tc -> new QueryDef(l * 1000, tc))
+			threadCounts.stream().map(tc -> new QueryDef(l, tc))
 		).collect(toList());
 	}
 
@@ -107,7 +107,7 @@ public class QueryTagDataTest extends BaseBean {
 		QueryDef(long limit, int threads) {
 			this.limit = limit;
 			this.threads = threads;
-			this.period = limit / valueCount;
+			this.period = limit * 1000 / valueCount;
 			this.name = "query-l" + limit + "-t" + threads;
 			this.timer = mb.timer(name);
 		}
