@@ -1,0 +1,1 @@
+call cds-test.bat -Dcds.test.enabledTests="QueryTest,SaveTest" %*
