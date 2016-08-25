@@ -24,9 +24,7 @@ import static ru.antinform.cds.metrics.MetricUtils.nanoToMillis;
 @NotThreadSafe
 public class QueryTagDataTest extends BaseBean {
 
-	final static String Name = "QueryTagDataTest";
-
-	final MetricBuilder mb = new MetricBuilder(Name);
+	final MetricBuilder mb = new MetricBuilder("QueryTagDataTest");
 	final long startDelay = config.getDuration("startDelay", MILLISECONDS);
 	final long runTime = config.getDuration("runTime", MILLISECONDS);
 	final List<Integer> threadCounts = config.getIntList("threadCounts");
@@ -38,10 +36,6 @@ public class QueryTagDataTest extends BaseBean {
 		super(ctx.mainConfig(), "cds.test." + configPath);
 		service = ctx.tagDataService();
 		executor = ctx.executor();
-	}
-
-	public QueryTagDataTest(Context ctx) {
-		this(ctx, Name);
 	}
 
 	private List<QueryDef> buildQueries() {
