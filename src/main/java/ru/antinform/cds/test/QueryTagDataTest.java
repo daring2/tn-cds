@@ -27,11 +27,13 @@ public class QueryTagDataTest extends BaseBean {
 	final MetricBuilder mb = new MetricBuilder("QueryTagDataTest");
 	final long startDelay = config.getDuration("startDelay", MILLISECONDS);
 	final long runTime = config.getDuration("runTime", MILLISECONDS);
-	final long valueCount = config.getLong("valueCount");
+	final long statPeriod = config.getDuration("statPeriod", MILLISECONDS);
 	final List<Integer> threadCounts = config.getIntList("threadCounts");
 	final List<QueryDef> queries = buildQueries();
 	final TagDataService service;
 	final ExecutorService executor;
+
+	long valueCount = config.getLong("valueCount");
 
 	public QueryTagDataTest(Context ctx, String configPath) {
 		super(ctx.mainConfig(), "cds.test." + configPath);
@@ -46,6 +48,10 @@ public class QueryTagDataTest extends BaseBean {
 		).collect(toList());
 	}
 
+	public void setValueCount(long valueCount) {
+		this.valueCount = valueCount;
+	}
+
 	public Future<String> start() {
 		return executor.submit(() -> {
 			sleep(startDelay);
@@ -54,6 +60,7 @@ public class QueryTagDataTest extends BaseBean {
 	}
 
 	public String run() throws Exception {
+		if (valueCount == 0) calculateValueCount();
 		long end = curTime() + runTime;
 		while (curTime() <= end) {
 			for (Integer tc : threadCounts) runParallel(tc);
@@ -64,6 +71,11 @@ public class QueryTagDataTest extends BaseBean {
 		}).collect(joining("\n"));
 		log.info("result:\n" + result);
 		return result;
+	}
+
+	private void calculateValueCount() {
+		long t = service.selectLastTime();
+		valueCount = service.selectTotals(t - statPeriod + 1, t).count / statPeriod;
 	}
 
 	private void runParallel(int threads) throws Exception {
@@ -78,7 +90,8 @@ public class QueryTagDataTest extends BaseBean {
 		long start = curTime();
 		queries.stream().filter(q -> q.threads == threads).forEach(q -> {
 			Timer.Context tc = q.timer.time();
-			TagDataTotals result = service.selectTotals(time - q.period, time);
+			long period = q.limit * 1000 / valueCount;
+			TagDataTotals result = service.selectTotals(time - period, time);
 			long et = nanoToMillis(tc.stop());
 			q.count.incrementAndGet();
 			log.debug("query: limit={}, time={}, result={}", q.limit, et, result);
@@ -99,7 +112,6 @@ public class QueryTagDataTest extends BaseBean {
 	class QueryDef {
 		final long limit;
 		final int threads;
-		final long period;
 		final String name;
 		final Timer timer;
 		final AtomicLong count = new AtomicLong();
@@ -107,7 +119,6 @@ public class QueryTagDataTest extends BaseBean {
 		QueryDef(long limit, int threads) {
 			this.limit = limit;
 			this.threads = threads;
-			this.period = limit * 1000 / valueCount;
 			this.name = "query-l" + limit + "-t" + threads;
 			this.timer = mb.timer(name);
 		}
