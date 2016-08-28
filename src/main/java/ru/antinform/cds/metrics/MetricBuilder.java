@@ -1,5 +1,6 @@
 package ru.antinform.cds.metrics;
 
+import com.codahale.metrics.Meter;
 import com.codahale.metrics.MetricRegistry;
 import com.codahale.metrics.Timer;
 import static java.lang.String.format;
@@ -22,6 +23,10 @@ public class MetricBuilder {
 
 	public Timer timer(String name) {
 		return registry.timer(metricName(name));
+	}
+
+	public Meter meter(String name) {
+		return registry.meter(metricName(name));
 	}
 
 }

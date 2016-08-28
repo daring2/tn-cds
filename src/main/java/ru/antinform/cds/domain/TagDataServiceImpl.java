@@ -1,5 +1,6 @@
 package ru.antinform.cds.domain;
 
+import com.codahale.metrics.Meter;
 import com.codahale.metrics.Timer;
 import com.datastax.driver.core.*;
 import com.typesafe.config.Config;
@@ -41,6 +42,7 @@ public class TagDataServiceImpl extends BaseBean implements TagDataService {
 
 	public ResultSetFuture saveAll(List<TagData> data) {
 		log.debug("saveAll(data.size={})", data.size());
+		metrics.saveValueCount.mark(data.size());
 		return meterCall(metrics.saveAllAsync, () -> {
 			Timer.Context tc = metrics.saveAll.time();
 			BatchStatement batch = newBatchStatement();
@@ -98,6 +100,7 @@ public class TagDataServiceImpl extends BaseBean implements TagDataService {
 		final MetricBuilder mb = new MetricBuilder("TagDataService");
 		final Timer saveAll = mb.timer("saveAll");
 		final Timer saveAllAsync = mb.timer("saveAllAsync");
+		final Meter saveValueCount = mb.meter("saveValueCount");
 		final Timer findByPeriod = mb.timer("findByPeriod");
 		final Timer selectTotals = mb.timer("selectTotals");
 	}
