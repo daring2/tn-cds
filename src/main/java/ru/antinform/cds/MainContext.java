@@ -27,8 +27,12 @@ public class MainContext implements AutoCloseable, TagDataServiceImpl.Context {
 		Cluster.Builder b = Cluster.builder();
 		c.getStringList("contactPoints").forEach(b::addContactPoint);
 		b.withAuthProvider(new PlainTextAuthProvider(c.getString("user"), c.getString("password")));
-		int readTimeout = (int) c.getDuration("readTimeout", MILLISECONDS);
-		b.withSocketOptions(new SocketOptions().setReadTimeoutMillis(readTimeout));
+		b.withSocketOptions(new SocketOptions().
+			setReadTimeoutMillis((int) c.getDuration("readTimeout", MILLISECONDS))
+		);
+		b.withPoolingOptions(new PoolingOptions().
+			setMaxRequestsPerConnection(HostDistance.LOCAL, c.getInt("maxRequestsPerConnection"))
+		);
 		b.withQueryOptions(new QueryOptions().
 			setDefaultIdempotence(true).
 			setFetchSize(c.getInt("fetchSize"))
