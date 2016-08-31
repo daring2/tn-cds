@@ -30,8 +30,9 @@ public class MainContext implements AutoCloseable, TagDataServiceImpl.Context {
 		b.withSocketOptions(new SocketOptions().
 			setReadTimeoutMillis((int) c.getDuration("readTimeout", MILLISECONDS))
 		);
+		int connectionsPerHost = c.getInt("connectionsPerHost");
 		b.withPoolingOptions(new PoolingOptions().
-			setCoreConnectionsPerHost(HostDistance.LOCAL, c.getInt("coreConnectionsPerHost")).
+			setConnectionsPerHost(HostDistance.LOCAL, connectionsPerHost, connectionsPerHost).
 			setMaxRequestsPerConnection(HostDistance.LOCAL, c.getInt("maxRequestsPerConnection"))
 		);
 		b.withQueryOptions(new QueryOptions().
