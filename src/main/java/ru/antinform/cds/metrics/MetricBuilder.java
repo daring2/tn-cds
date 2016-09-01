@@ -1,8 +1,10 @@
 package ru.antinform.cds.metrics;
 
+import com.codahale.metrics.Gauge;
 import com.codahale.metrics.Meter;
 import com.codahale.metrics.MetricRegistry;
 import com.codahale.metrics.Timer;
+import java.util.function.Supplier;
 import static java.lang.String.format;
 import static ru.antinform.cds.metrics.MetricUtils.Registry;
 
@@ -27,6 +29,10 @@ public class MetricBuilder {
 
 	public Meter meter(String name) {
 		return registry.meter(metricName(name));
+	}
+
+	public <T> Gauge<T> gauge(String name, Supplier<T> supplier) {
+		return registry.register(metricName(name), supplier::get);
 	}
 
 }

@@ -4,6 +4,7 @@ import com.datastax.driver.core.*;
 import com.datastax.driver.extras.codecs.date.SimpleTimestampCodec;
 import com.typesafe.config.Config;
 import com.typesafe.config.ConfigFactory;
+import ru.antinform.cds.cassandra.SessionMetrics;
 import ru.antinform.cds.domain.TagDataService;
 import ru.antinform.cds.domain.TagDataServiceImpl;
 import ru.antinform.cds.metrics.MetricReporter;
@@ -19,6 +20,7 @@ public class MainContext implements AutoCloseable, TagDataServiceImpl.Context {
 	Config mainConfig = ConfigFactory.load();
 	ExecutorService executor = newCachedThreadPool();
 	Session session = createSession();
+	SessionMetrics sessionMetrics = new SessionMetrics(session);
 	TagDataService tagDataService = new TagDataServiceImpl(this);
 	MetricReporter metricReporter = new MetricReporter(mainConfig);
 
