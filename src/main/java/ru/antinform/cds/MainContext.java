@@ -24,6 +24,7 @@ public class MainContext implements AutoCloseable, TagDataServiceImpl.Context {
 
 	private Session createSession() {
 		Config c = mainConfig.getConfig("cds.session");
+		System.setProperty("com.datastax.driver.NON_BLOCKING_EXECUTOR_SIZE", c.getString("executorSize"));
 		Cluster.Builder b = Cluster.builder();
 		c.getStringList("contactPoints").forEach(b::addContactPoint);
 		b.withAuthProvider(new PlainTextAuthProvider(c.getString("user"), c.getString("password")));
