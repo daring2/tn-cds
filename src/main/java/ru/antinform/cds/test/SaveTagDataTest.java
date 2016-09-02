@@ -3,6 +3,7 @@ package ru.antinform.cds.test;
 import com.datastax.driver.core.Session;
 import com.google.common.util.concurrent.ListenableFuture;
 import com.typesafe.config.Config;
+import ru.antinform.cds.domain.TagCalculator;
 import ru.antinform.cds.domain.TagData;
 import ru.antinform.cds.domain.TagDataService;
 import ru.antinform.cds.utils.BaseBean;
@@ -22,6 +23,7 @@ class SaveTagDataTest extends BaseBean {
 
 	final Context ctx;
 	final int tagCount = config.getInt("tagCount");
+	final boolean calculateTags = config.getBoolean("calculateTags");
 	final long savePeriod = config.getDuration("savePeriod", MILLISECONDS);
 	final long runTime = config.getDuration("runTime", MILLISECONDS);
 	final int asyncDelay = config.getInt("asyncDelay");
@@ -57,7 +59,9 @@ class SaveTagDataTest extends BaseBean {
 	private void saveValues(long time, int vi) throws Exception {
 		List<TagData> data = new ArrayList<>(tagCount);
 		for (int i = 0; i < tagCount; i++)
-			data.add(new TagData("t" + i, time, vi + i, 0));
+			data.add(new TagData("t." + i, time, vi + i, 0));
+		if (calculateTags)
+			data.addAll(ctx.tagCalculator().calculate(data));
 		ListenableFuture<?> rf = ctx.tagDataService().saveAll(data);
 		resultQueue.put(rf);
 	}
@@ -69,6 +73,7 @@ class SaveTagDataTest extends BaseBean {
 	interface Context {
 		Config mainConfig();
 		Session session();
+		TagCalculator tagCalculator();
 		TagDataService tagDataService();
 	}
 

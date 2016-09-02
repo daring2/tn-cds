@@ -21,7 +21,6 @@ public class TagDataServiceImpl extends BaseBean implements TagDataService {
 	final Metrics metrics = new Metrics();
 
 	final long datePeriod = config.getDuration("datePeriod", MILLISECONDS);
-	final Context ctx;
 	final Session session;
 	final PreparedStatement insertStat;
 	final PreparedStatement findByPeriodStat;
@@ -29,7 +28,6 @@ public class TagDataServiceImpl extends BaseBean implements TagDataService {
 
 	public TagDataServiceImpl(Context ctx) {
 		super(ctx.mainConfig(), "cds.TagDataService");
-		this.ctx = ctx;
 		session = ctx.session();
 		if (config.getBoolean("createTable"))
 			session.execute(config.getString("createTableSql"));
@@ -44,12 +42,11 @@ public class TagDataServiceImpl extends BaseBean implements TagDataService {
 
 	public ResultSetFuture saveAll(List<TagData> data) {
 		log.debug("saveAll(data.size={})", data.size());
-		List<TagData> cdata = ctx.tagCalculator().calculate(data);
-		metrics.saveValueCount.mark(cdata.size());
+		metrics.saveValueCount.mark(data.size());
 		return meterCall(metrics.saveAllAsync, () -> {
 			Timer.Context tc = metrics.saveAll.time();
 			BatchStatement batch = newBatchStatement();
-			for (TagData d : cdata)
+			for (TagData d : data)
 				batch.add(insertStat.bind(d.tag, calcDate(d.time), d.time, d.value, d.quality));
 			ResultSetFuture rf = session.executeAsync(batch);
 			rf.addListener(tc::stop, directExecutor());
@@ -97,7 +94,6 @@ public class TagDataServiceImpl extends BaseBean implements TagDataService {
 	public interface Context {
 		Config mainConfig();
 		Session session();
-		TagCalculator tagCalculator();
 	}
 
 	static class Metrics {
