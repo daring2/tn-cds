@@ -29,8 +29,8 @@ public class MovingAverageTest {
 		List<Formula> fs = range(0, 10000).
 			mapToObj(i -> i < 5000 ? new MovingAverage(window) : new StdDeviation(window)).
 			collect(toList());
-		Stopwatch sw = createStarted();
 		int valueCount = 600;
+		Stopwatch sw = createStarted();
 		range(0, valueCount).forEach(i -> {
 			for (Formula f : fs) f.apply(i);
 		});
