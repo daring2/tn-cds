@@ -32,8 +32,7 @@ public class MovingAverageTest {
 		Stopwatch sw = createStarted();
 		int valueCount = 600;
 		range(0, valueCount).forEach(i -> {
-			for (Formula f : fs)
-				f.apply(i);
+			for (Formula f : fs) f.apply(i);
 		});
 		sw.stop();
 		long t1 = sw.elapsed(MILLISECONDS) / valueCount;
