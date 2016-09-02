@@ -1,15 +1,20 @@
 package ru.antinform.cds.formula;
 
-import org.apache.commons.math3.stat.StatUtils;
-
 public class MovingAverage extends WindowFunction {
+
+	double sum;
 
 	public MovingAverage(int size) {
 		super(size);
 	}
 
+	public double apply(double value) {
+		sum += value - values[index];
+		return super.apply(value);
+	}
+
 	double update() {
-		return StatUtils.mean(values, 0, dataSize);
+		return sum / dataSize;
 	}
 
 }
