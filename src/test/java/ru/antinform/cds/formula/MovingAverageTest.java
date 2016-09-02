@@ -19,9 +19,8 @@ public class MovingAverageTest {
 	public void testApply() throws Exception {
 		MovingAverage f = new MovingAverage(3);
 		double[][] vs = new double[][] {{1, 1}, {2, 1.5}, {3, 2}, {4, 3}};
-		for (double[] vt : vs) {
+		for (double[] vt : vs)
 			assertEquals(vt[1], f.apply(vt[0]), delta);
-		}
 	}
 
 	@Test @Ignore
