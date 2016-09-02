@@ -5,6 +5,8 @@ import com.datastax.driver.extras.codecs.date.SimpleTimestampCodec;
 import com.typesafe.config.Config;
 import com.typesafe.config.ConfigFactory;
 import ru.antinform.cds.cassandra.SessionMetrics;
+import ru.antinform.cds.domain.TagCalculator;
+import ru.antinform.cds.domain.TagCalculatorImpl;
 import ru.antinform.cds.domain.TagDataService;
 import ru.antinform.cds.domain.TagDataServiceImpl;
 import ru.antinform.cds.metrics.MetricReporter;
@@ -13,7 +15,9 @@ import static java.util.concurrent.Executors.newCachedThreadPool;
 import static java.util.concurrent.TimeUnit.MILLISECONDS;
 
 @SuppressWarnings("WeakerAccess")
-public class MainContext implements AutoCloseable, TagDataServiceImpl.Context {
+public class MainContext implements AutoCloseable,
+	TagCalculatorImpl.Context, TagDataServiceImpl.Context
+{
 
 	//TODO consider to use DI container
 
@@ -21,6 +25,7 @@ public class MainContext implements AutoCloseable, TagDataServiceImpl.Context {
 	ExecutorService executor = newCachedThreadPool();
 	Session session = createSession();
 	SessionMetrics sessionMetrics = new SessionMetrics(session);
+	TagCalculator tagCalculator = new TagCalculatorImpl(this);
 	TagDataService tagDataService = new TagDataServiceImpl(this);
 	MetricReporter metricReporter = new MetricReporter(mainConfig);
 
@@ -58,6 +63,7 @@ public class MainContext implements AutoCloseable, TagDataServiceImpl.Context {
 	public Config mainConfig() { return mainConfig; }
 	public ExecutorService executor() { return executor; }
 	public Session session() { return session; }
+	public TagCalculator tagCalculator() { return tagCalculator; }
 	public TagDataService tagDataService() { return tagDataService; }
 
 }
