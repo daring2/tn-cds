@@ -4,7 +4,7 @@ import com.codahale.metrics.Timer;
 import com.typesafe.config.Config;
 import ru.antinform.cds.formula.Formula;
 import ru.antinform.cds.formula.MovingAverage;
-import ru.antinform.cds.formula.StdDeviation;
+import ru.antinform.cds.formula.MovingStandardDeviation;
 import ru.antinform.cds.metrics.MetricBuilder;
 import ru.antinform.cds.utils.BaseBean;
 import java.util.HashMap;
@@ -42,7 +42,7 @@ public class TagCalculatorImpl extends BaseBean implements TagCalculator {
 	private Formula getFormula(String tag) {
 		return formulas.computeIfAbsent(tag, tc -> {
 			int i = parseInt(substringAfterLast(tc, ".")) % 2;
-			return i == 0 ? new MovingAverage(windowSize) : new StdDeviation(windowSize);
+			return i == 0 ? new MovingAverage(windowSize) : new MovingStandardDeviation(windowSize);
 		});
 	}
 

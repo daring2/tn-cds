@@ -17,7 +17,7 @@ public class FormulaTest {
 	public void testSpeed() throws Exception {
 		int window = 500;
 		List<Formula> fs = range(0, 10000).
-			mapToObj(i -> i < 5000 ? new MovingAverage(window) : new StdDeviation(window)).
+			mapToObj(i -> i < 5000 ? new MovingAverage(window) : new MovingStandardDeviation(window)).
 			collect(toList());
 		int valueCount = 600;
 		Stopwatch sw = createStarted();

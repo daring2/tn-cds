@@ -2,7 +2,7 @@ package ru.antinform.cds.formula;
 
 public class MovingAverage extends WindowFunction {
 
-	double sum;
+	private double sum;
 
 	public MovingAverage(int size) {
 		super(size);
