@@ -8,9 +8,11 @@ import ru.antinform.cds.metrics.MetricBuilder;
 import ru.antinform.cds.utils.BaseBean;
 import ru.antinform.cds.utils.StreamUtils;
 import java.util.List;
+import java.util.Optional;
 import java.util.stream.Stream;
 import static com.datastax.driver.core.BatchStatement.Type.LOGGED;
 import static com.google.common.util.concurrent.MoreExecutors.directExecutor;
+import static java.lang.System.currentTimeMillis;
 import static java.util.concurrent.TimeUnit.MILLISECONDS;
 import static java.util.stream.IntStream.range;
 import static ru.antinform.cds.metrics.MetricUtils.meterCall;
@@ -24,6 +26,7 @@ public class TagDataServiceImpl extends BaseBean implements TagDataService {
 	final Session session;
 	final PreparedStatement insertStat;
 	final PreparedStatement findByPeriodStat;
+	final PreparedStatement selectTimeStat;
 	final PreparedStatement selectTotalsStat;
 
 	public TagDataServiceImpl(Context ctx) {
@@ -33,6 +36,7 @@ public class TagDataServiceImpl extends BaseBean implements TagDataService {
 			session.execute(config.getString("createTableSql"));
 		insertStat = prepareStatement("insert");
 		findByPeriodStat = prepareStatement("findByPeriod");
+		selectTimeStat = prepareStatement("selectTime");
 		selectTotalsStat = prepareStatement("selectTotals");
 	}
 
@@ -72,7 +76,11 @@ public class TagDataServiceImpl extends BaseBean implements TagDataService {
 
 	@Override
 	public long selectLastTime() {
-		return session.execute("select t from tag_data limit 1").one().getLong(0);
+		int d = calcDate(currentTimeMillis());
+		Optional<Row> r = range(0, 10).mapToObj(i ->
+			session.execute(selectTimeStat.bind(d - i))
+		).flatMap(StreamUtils::stream).findFirst();
+		return r.get().getLong(0);
 	}
 
 	public TagDataTotals selectTotals(long start, long end) {
