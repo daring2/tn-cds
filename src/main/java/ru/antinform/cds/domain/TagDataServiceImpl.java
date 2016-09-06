@@ -8,11 +8,9 @@ import ru.antinform.cds.metrics.MetricBuilder;
 import ru.antinform.cds.utils.BaseBean;
 import ru.antinform.cds.utils.StreamUtils;
 import java.util.List;
-import java.util.Optional;
 import java.util.stream.Stream;
 import static com.datastax.driver.core.BatchStatement.Type.LOGGED;
 import static com.google.common.util.concurrent.MoreExecutors.directExecutor;
-import static java.lang.System.currentTimeMillis;
 import static java.util.concurrent.TimeUnit.MILLISECONDS;
 import static java.util.stream.IntStream.range;
 import static ru.antinform.cds.metrics.MetricUtils.meterCall;
@@ -76,11 +74,8 @@ public class TagDataServiceImpl extends BaseBean implements TagDataService {
 
 	@Override
 	public long selectLastTime() {
-		int d = calcDate(currentTimeMillis());
-		Optional<Row> r = range(0, 10).mapToObj(i ->
-			session.execute(selectTimeStat.bind(d - i))
-		).flatMap(StreamUtils::stream).findFirst();
-		return r.get().getLong(0);
+		int date = session.execute("select distinct max(date) from tag_data").one().getInt(0);
+		return session.execute(selectTimeStat.bind(date)).one().getLong(0);
 	}
 
 	public TagDataTotals selectTotals(long start, long end) {
